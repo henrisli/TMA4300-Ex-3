@@ -19,7 +19,94 @@ library(coda)
 opts_chunk$set(tidy.opts = list(width.cutoff = 68), tidy = TRUE, warning = FALSE, error = FALSE, message = FALSE, echo = TRUE, fig.pos = 'H')
 ```
 
+# Problem A: Comparing `AR(2)` parameter estimators using resampling of residuals
 
+In this exercise we want to analyse a non-Gaussian time-series, and compare two different parameter estimators. We consider and AR(2) model, which is specified by the relation
+$$x_t = \beta_xx_{t-1}+\beta_2x_{t-2}+e_t,$$
+where $e_t$ are i.i.d. random variables with zero mean and constant variance. The least sum of squared residuals (LS) and least sum of absolute residuals (LA) are obtained by minimising the following loss functions w.r.t $\boldsymbol \beta$
+\begin{align*}
+Q_{LS}(\mathbf{x}) &= \sum_{t=3}^T(x_t-\beta_1x_{t-1}-\beta_2x_{t-2})^2,\\
+Q_{LA}(\mathbf{x}) &= \sum_{t=3}^T|x_t-\beta_1x_{t-1}-\beta_2x_{t-2}|.
+\end{align*}
+We denote the minimisers by $\hat{\boldsymbol \beta}_{LS}$ and $\hat{\boldsymbol \beta}_{LA}$, and define the estimated residuals to be $\hat{e}_t= x_t-\hat{\beta}_1x_{t-1}-\hat{\beta}_2x_{t-2}$ for $t=3,\dots,T$, and let $\bar{e}$ be the mean of these. Then we re-center the residuals to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t - \bar{e}$.
+```{r, echo = F, eval = T}
+source("probAdata.R")
+source("probAhelp.R")
+```
+## 1.
+We now use the residual resampling bootstrap method to evaluate the relative performance of the two parameter estimators. First, we calculate the two estimators by using the provided function `ARp.beta.est()`. Then, we calculate the observed residuals by using the provided function `ARp.resid()`.
+```{r, echo = T, eval = T}
+# Calculate the two estimators
+n = length(data3A$x)
+estimators = ARp.beta.est(data3A$x,2)
+beta.LS = estimators$LS
+beta.LA = estimators$LA
+
+# Calculate observed residuals
+e.observed.LS = ARp.resid(data3A$x,beta.LS)
+e.observed.LA = ARp.resid(data3A$x,beta.LA)
+```
+
+Then, we want to estimate the variance and bias of the two estimators. We use 1500 bootstrap samples, each as long as the original data sequence. To do resampling, we initialise values for $x_1$ and $x_2$ by picking a random consecutive sequence from the data. Then, we use the provided function `ARp.filter()` to generate a new sample based on the bootstrapped residuals. Finally, we regress the new time-series to obtain bootstrapped estimates of the different $\boldsymbol \beta$'s.
+```{r, echo = T, eval = T}
+# Number of Bootstrap Samples
+B = 1500
+
+# Bootstrap the residuals B times
+e.bootstrapped.LS = matrix(sample(e.observed.LS, size=B*n, replace=T), nrow = B, ncol = n)
+e.bootstrapped.LA = matrix(sample(e.observed.LA, size=B*n, replace=T), nrow = B, ncol = n)
+
+# Create a random consecutive sequence to initialise
+index = sample(99, B, replace=T)
+index.mat = matrix(c(index,index+1),nrow = B,ncol = 2)
+x0 = matrix(data3A$x[index.mat], nrow = B, ncol = 2)
+
+# Prepare to allocate data
+bootstrapped.LS = matrix(NA, nrow = B, ncol = 2)
+bootstrapped.LA = matrix(NA, nrow = B, ncol = 2)
+for (i in 1:B){
+  # Create time-series
+  bootstrapped.sample.LS = ARp.filter(x0[i,], beta.LS, e.bootstrapped.LS[i,])
+  bootstrapped.sample.LA = ARp.filter(x0[i,], beta.LA, e.bootstrapped.LA[i,])
+  
+  # Regress on the time-series
+  bootstrapped.LS[i,] = ARp.beta.est(bootstrapped.sample.LS, 2)$LS
+  bootstrapped.LA[i,] = ARp.beta.est(bootstrapped.sample.LA, 2)$LA
+}
+```
+
+We use the bootstrap to obtain variance and bias of the two estimators. To estimate the bias, we use the plug-in principle, and define the estimate of the bias as
+$$\text{bias}_{\hat{F}} = E_{\hat{F}} [s(\mathbf{x}^\ast)]-\hat{\boldsymbol \beta},$$
+where $\hat{F}$ is the bootstrap sample distribution, $\mathbf{x}^\ast$ is a bootstrap sample and $s(\cdot)$ is the bootstrap estimator. To estimate the variance, we use the sample variance of the bootstrap estimators.
+
+```{r, echo = T, eval = F}
+# Mean of bootstrap estimators
+bootstrap.estimate.LS = apply(bootstrapped.LS,2,mean)
+bootstrap.estimate.LA = apply(bootstrapped.LA,2,mean)
+
+# Variance of bootstrap estimators
+bootstrap.variance.LS = apply(bootstrapped.LS,2,var)
+bootstrap.variance.LA = apply(bootstrapped.LA,2,var)
+cat("Bias of beta.LS: ", bootstrap.estimate.LS - beta.LS, "\n")
+cat("Bias of beta.LA: ", bootstrap.estimate.LA - beta.LA, "\n")
+
+cat("Variance of beta.LS: ", bootstrap.variance.LS, "\n")
+cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
+```
+```{r, echo = F, eval = T}
+# Mean of bootstrap estimators
+bootstrap.estimate.LS = apply(bootstrapped.LS,2,mean)
+bootstrap.estimate.LA = apply(bootstrapped.LA,2,mean)
+
+# Variance of bootstrap estimators
+bootstrap.variance.LS = apply(bootstrapped.LS,2,var)
+bootstrap.variance.LA = apply(bootstrapped.LA,2,var)
+cat("Bias of beta.LS: ", bootstrap.estimate.LS - beta.LS, "\n")
+cat("Bias of beta.LA: ", bootstrap.estimate.LA - beta.LA, "\n")
+
+cat("Variance of beta.LS: ", bootstrap.variance.LS, "\n")
+cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
+```
 
 
 # Problem B
