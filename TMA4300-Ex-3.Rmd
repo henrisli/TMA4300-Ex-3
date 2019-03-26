@@ -1,0 +1,20 @@
+--- 
+title: 'TMA4300 Computer Intensive Statistical Methods Exercise 3, Spring 2019'
+output:
+  pdf_document:
+    toc: no
+    toc_depth: '2'
+date: "`r format(Sys.time(), '%d.%m.%Y')`"
+subtitle: 'Group members: Henrik Syversveen Lie, Mikal Solberg Stapnes'
+header-includes: \usepackage{float}
+---
+
+
+```{r setup, include = FALSE}
+library(formatR)
+showsol <- FALSE
+library(knitr)
+library(ggplot2)
+library(coda)
+opts_chunk$set(tidy.opts = list(width.cutoff = 68), tidy = TRUE, warning = FALSE, error = FALSE, message = FALSE, echo = TRUE, fig.pos = 'H')
+```
