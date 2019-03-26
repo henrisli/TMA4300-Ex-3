@@ -26,11 +26,15 @@ opts_chunk$set(tidy.opts = list(width.cutoff = 68), tidy = TRUE, warning = FALSE
 
 ## 1)
 
-```{r}
+We first inspect the logarithms of the concentrations for each individual.
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Box plot of the logarithm of the measured concentration (mg/dL) in blood samples taken from three young men. \\label{boxplot}"}
 bilirubin <- read.table("bilirubin.txt",header=T)
-ggplot(data = bilirubin, aes(x = pers, y = meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
+bilirubin['log_meas'] = log(bilirubin$meas)
+ggplot(data = bilirubin, aes(x = pers, y = log_meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
              outlier.size=2, notch=FALSE)
 ```
+We observe from \ref{boxplot} that the median (the middle bold line) for person 1 and person 2 are very close to eachother and far from the median for person 3. From the 1st and 3rd quartiles of the boxplots (indicated by the lower and upper hinges) we observe that there is little spread in the measurements for person 2, some spread for person 3 and a lot of spread for person 1. The whiskers denote the largest / smallest measurement that is whithin $1.5 * IQR$ (the range between the 1st and 3rd quantile) from the upper / lower hinge. This measures the total spread in the data. For person 1 and person 2 we see that the whiskers extend relatively far into the range of the boxplot of person 3. Judging based only on the median we may be tempted to conclude already that the medians are significantly different from eachother, but observing (from the whiskers) the large spread in the data we should also investigate this significance quantitatively.
+
 ```{r}
 model0 = lm(log(meas)~pers,data=bilirubin)
 summary_model0 = summary(model0)
@@ -38,6 +42,8 @@ fstatistic_model0 = summary_model0$fstatistic[1]
 
 summary_model0
 ```
+
+
 
 ## 2)
 
