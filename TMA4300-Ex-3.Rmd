@@ -18,3 +18,57 @@ library(ggplot2)
 library(coda)
 opts_chunk$set(tidy.opts = list(width.cutoff = 68), tidy = TRUE, warning = FALSE, error = FALSE, message = FALSE, echo = TRUE, fig.pos = 'H')
 ```
+
+
+
+
+# Problem B
+
+## 1)
+
+```{r}
+bilirubin <- read.table("bilirubin.txt",header=T)
+ggplot(data = bilirubin, aes(x = pers, y = meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
+             outlier.size=2, notch=FALSE)
+```
+```{r}
+model0 = lm(log(meas)~pers,data=bilirubin)
+summary_model0 = summary(model0)
+fstatistic_model0 = summary_model0$fstatistic[1]
+
+summary_model0
+```
+
+## 2)
+
+```{r}
+set.seed(4300)
+fstatistic_length = 999
+fstatistic_values = c(length.out = fstatistic_length)
+
+permTest <- function() {
+  df = data.frame(bilirubin)
+  df$pers = sample(bilirubin$pers, size=length(bilirubin$pers), replace = FALSE)
+  sum = summary(model0)
+  return(summary(lm(log(meas)~pers,data=df))$fstatistic['value'])
+}
+
+```
+
+## 3)
+
+```{r}
+for (i in seq(0, fstatistic_length)) {
+  fstatistic_values[i] = permTest()
+}
+
+df_fstatistic_values = data.frame(x = fstatistic_values)
+fstatistic_quantiles = quantile(fstatistic_values, probs = c(0.05, 0.95))
+ggplot() + geom_histogram(data = df_fstatistic_values, aes(x = x, y = ..density.., col="permuted"), bins=200) + geom_point(aes(x=fstatistic_model0, y=0, col="original")) + geom_vline(aes(xintercept = c(fstatistic_quantiles)))
+```
+```{r}
+index = which.min(abs(sort(fstatistic_values) - fstatistic_model0))
+cat("p-value: ", (fstatistic_length - index)/fstatistic_length)
+```
+
+
