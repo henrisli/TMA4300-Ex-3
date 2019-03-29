@@ -49,12 +49,12 @@ e.observed.LA = ARp.resid(data3A$x,beta.LA)
 
 Then, we want to estimate the variance and bias of the two estimators. We use 1500 bootstrap samples, each as long as the original data sequence. To do resampling, we initialise values for $x_1$ and $x_2$ by picking a random consecutive sequence from the data. Then, we use the provided function `ARp.filter()` to generate a new sample based on the bootstrapped residuals. Finally, we regress the new time-series to obtain bootstrapped estimates of the different $\boldsymbol \beta$'s.
 ```{r, echo = T, eval = T}
+set.seed(4300)
 # Number of Bootstrap Samples
 B = 1500
 
 # Bootstrap the residuals B times
-e.bootstrapped.LS = matrix(sample(e.observed.LS, size=B*n, replace=T), nrow = B, ncol = n)
-e.bootstrapped.LA = matrix(sample(e.observed.LA, size=B*n, replace=T), nrow = B, ncol = n)
+e.bootstrapped = matrix(sample(e.observed.LS, size=B*(n-2), replace=T), nrow = B, ncol = n-2)
 
 # Create a random consecutive sequence to initialise
 index = sample(99, B, replace=T)
@@ -64,14 +64,22 @@ x0 = matrix(data3A$x[index.mat], nrow = B, ncol = 2)
 # Prepare to allocate data
 bootstrapped.LS = matrix(NA, nrow = B, ncol = 2)
 bootstrapped.LA = matrix(NA, nrow = B, ncol = 2)
+# Prepare to allocate data to create residuals from the B different pairs of beta
+e.bootstrapped.beta.LS = matrix(NA, nrow = B, ncol = n-2)
+e.bootstrapped.beta.LA = matrix(NA, nrow = B, ncol = n-2)
+
 for (i in 1:B){
   # Create time-series
-  bootstrapped.sample.LS = ARp.filter(x0[i,], beta.LS, e.bootstrapped.LS[i,])
-  bootstrapped.sample.LA = ARp.filter(x0[i,], beta.LA, e.bootstrapped.LA[i,])
+  bootstrapped.sample.LS = ARp.filter(x0[i,], beta.LS, e.bootstrapped[i,])
+  bootstrapped.sample.LA = ARp.filter(x0[i,], beta.LA, e.bootstrapped[i,])
   
   # Regress on the time-series
   bootstrapped.LS[i,] = ARp.beta.est(bootstrapped.sample.LS, 2)$LS
   bootstrapped.LA[i,] = ARp.beta.est(bootstrapped.sample.LA, 2)$LA
+  
+  # Compute the corresponding residuals based on the created time-series and the computed betas
+  e.bootstrapped.beta.LS[i,] = ARp.resid(bootstrapped.sample.LS,bootstrapped.LS[i,])
+  e.bootstrapped.beta.LA[i,] = ARp.resid(bootstrapped.sample.LA,bootstrapped.LA[i,])
 }
 ```
 
@@ -108,8 +116,96 @@ cat("Variance of beta.LS: ", bootstrap.variance.LS, "\n")
 cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
 ```
 
+LS < LA?? EU < NA?
 
-# Problem B
+## 2.
+We now want to compute a $95\%$ prediction interval for $x_{101}$ based on both the LS and the LA estimator. We use the bootstrapped time-series and the 1500 estimates for $\boldsymbol \beta$ obtained in part 1. to estimate the residual distribution, then we use the following formula to simulate a value $x_{101}$ for the observed time-series
+$$x_{101} = \beta_1 x_{99} + \beta_2 x_{100} + e_{101},$$
+where $e_{101}$ is drawn from the residual distribution. By doing this, the simulated $x_{101}$ values will reflect both our lack of knowledge about the parameter values, and our lack of knowledge about the residual distribution. We then display histograms of the simulated distributions of $x_{101}$, and also find limits in the prediction interval as quantiles in the simulated values.
+
+```{r, echo = T, eval = F, out.width = "50%"}
+set.seed(4300)
+# Create a vector of the values of x_99 and x_100
+x = data3A$x[99:100]
+
+# x_101 = beta_1 * x_99 + beta_2 * x_100 + residual
+x.101.LS = as.vector(bootstrapped.LS%*%x)
+x.101.LA = as.vector(bootstrapped.LA%*%x)
+for (i in 1:B){
+  x.101.LS[i] = x.101.LS[i] + sample(e.bootstrapped.beta.LS[i,], size = 1)
+  x.101.LA[i] = x.101.LA[i] + sample(e.bootstrapped.beta.LA[i,], size = 1)
+}
+
+df = data.frame(x = x.101.LS)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df = data.frame(x = x.101.LA)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
+cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
+```
+```{r, echo = F, eval = T, out.width = "50%"}
+set.seed(4300)
+# Create a vector of the values of x_99 and x_100
+x = data3A$x[99:100]
+
+# x_101 = beta_1 * x_99 + beta_2 * x_100 + residual
+x.101.LS = as.vector(bootstrapped.LS%*%x)
+x.101.LA = as.vector(bootstrapped.LA%*%x)
+for (i in 1:B){
+  x.101.LS[i] = x.101.LS[i] + sample(e.bootstrapped.beta.LS[i,], size = 1)
+  x.101.LA[i] = x.101.LA[i] + sample(e.bootstrapped.beta.LA[i,], size = 1)
+}
+
+df = data.frame(x = x.101.LS)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df = data.frame(x = x.101.LA)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
+cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
+```
+We observe that the histograms from the two different estimation methods look very similar. However, the limits of the $95\%$ prediction interval for the LA estimator are somewhat higher than the interval for the LS estimator. Still, this result could change if we set a different seed before sampling the residuals or before the bootstrap sampling.
+
+If we study the histograms, we also see that we get some really large simulated values for $x_{101}$. However, these large values do not appear frequent enough to appear in the $95\%$ prediction intervals. The reason why these large values appear becomes evident if we plot a histogram of the residual distribution. This is done for the distribution based on LS estimates in figure \ref{fig:resdist}, and the distribution based on LA estimates will be very similar.
+
+```{r, echo = T, eval = T, out.width = "50%", fig.align = "center", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of beta. \\label{fig:resdist}"}
+df = data.frame(x= as.vector(e.bootstrapped.beta.LS))
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of residual distribution based on bootstrapped LS estimates of beta") + xlab("residual")
+```
+From figure \ref{fig:resdist}, we see that some residuals have a value of $\simeq 30$, while the rest are concentrated in the range $[-10,10]$. This explains the observed large values for $x_{101}$.
+
+A different method to estimate the distribution of $x_{101}$ is to use the bootstrapped values of $\boldsymbol \beta$ and simulate the residuals from the initial observed residuals achieved wihtout bootstrapping. This is done below.
+
+
+```{r, echo = T, eval = F}
+set.seed(4300)
+residuals = sample(e.observed.LS, size = B, replace = T)
+x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
+x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
+df = data.frame(x = x.101.LS)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df = data.frame(x = x.101.LA)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
+cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
+```
+```{r, echo = F, eval = T, out.width = "50%"}
+set.seed(4300)
+residuals = sample(e.observed.LS, size = B, replace = T)
+x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
+x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
+df = data.frame(x = x.101.LS)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df = data.frame(x = x.101.LA)
+ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
+cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
+```
+We see that both the prediction interval values, and the histograms achieved from this method...
+Histogram ved å bruke e.observed
+Histogrammene er veldig like, noe vi også forventer siden residuals burde bli ganske like i bootstrap regression of de faktiske
+
+
+# Problem B: Permutation test
 
 ## 1)
 
