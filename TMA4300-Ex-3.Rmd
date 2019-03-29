@@ -53,8 +53,7 @@ Then, we want to estimate the variance and bias of the two estimators. We use 15
 B = 1500
 
 # Bootstrap the residuals B times
-e.bootstrapped.LS = matrix(sample(e.observed.LS, size=B*n, replace=T), nrow = B, ncol = n)
-e.bootstrapped.LA = matrix(sample(e.observed.LA, size=B*n, replace=T), nrow = B, ncol = n)
+e.bootstrapped = matrix(sample(e.observed.LS, size=B*(n-2), replace=T), nrow = B, ncol = n-2)
 
 # Create a random consecutive sequence to initialise
 index = sample(99, B, replace=T)
@@ -64,14 +63,22 @@ x0 = matrix(data3A$x[index.mat], nrow = B, ncol = 2)
 # Prepare to allocate data
 bootstrapped.LS = matrix(NA, nrow = B, ncol = 2)
 bootstrapped.LA = matrix(NA, nrow = B, ncol = 2)
+# Prepare to allocate data to create residuals from the B different pairs of beta
+e.bootstrapped.beta.LS = matrix(NA, nrow = B, ncol = n-2)
+e.bootstrapped.beta.LA = matrix(NA, nrow = B, ncol = n-2)
+
 for (i in 1:B){
   # Create time-series
-  bootstrapped.sample.LS = ARp.filter(x0[i,], beta.LS, e.bootstrapped.LS[i,])
-  bootstrapped.sample.LA = ARp.filter(x0[i,], beta.LA, e.bootstrapped.LA[i,])
+  bootstrapped.sample.LS = ARp.filter(x0[i,], beta.LS, e.bootstrapped[i,])
+  bootstrapped.sample.LA = ARp.filter(x0[i,], beta.LA, e.bootstrapped[i,])
   
   # Regress on the time-series
   bootstrapped.LS[i,] = ARp.beta.est(bootstrapped.sample.LS, 2)$LS
   bootstrapped.LA[i,] = ARp.beta.est(bootstrapped.sample.LA, 2)$LA
+  
+  # Compute the corresponding residuals based on the created time-series and the computed betas
+  e.bootstrapped.beta.LS[i,] = ARp.resid(bootstrapped.sample.LS,bootstrapped.LS[i,])
+  e.bootstrapped.beta.LA[i,] = ARp.resid(bootstrapped.sample.LA,bootstrapped.LA[i,])
 }
 ```
 
@@ -114,7 +121,19 @@ LS < LA?? EU < NA?
 
 
 ```{r, echo = T, eval = T}
-
+# Create a vector of the values of x_99 and x_100
+x = data3A$x[99:100]
+# x_101 = beta_1 * x_99 + beta_2 * x_100 + residual
+x.101.LS = as.vector(bootstrapped.LS%*%x)
+x.101.LA = as.vector(bootstrapped.LA%*%x)
+x.101.bootstrapped.LS = rep(0,B)
+x.101.bootstrapped.LA = rep(0,B)
+for (i in 1:B){
+  x.101.bootstrapped.LS[i] = x.101.LS[i] + sample(e.bootstrapped.beta.LS[i,], size = 1)
+  x.101.bootstrapped.LA[i] = x.101.LA[i] + sample(e.bootstrapped.beta.LA[i,], size = 1)
+}
+x.101.LS = x.101.LS + sample(e.observed.LS, size = B, replace = T)
+x.101.LA = x.101.LA + sample(e.observed.LA, size = B, replace = T)
 ```
 
 # Problem B
