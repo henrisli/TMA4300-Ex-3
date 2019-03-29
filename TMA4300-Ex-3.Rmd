@@ -107,3 +107,13 @@ cat("Bias of beta.LA: ", bootstrap.estimate.LA - beta.LA, "\n")
 cat("Variance of beta.LS: ", bootstrap.variance.LS, "\n")
 cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
 ```
+
+
+LS < LA?? EU < NA?
+
+## 2.
+
+
+```{r, echo = T, eval = T}
+
+```
