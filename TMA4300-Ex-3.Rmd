@@ -117,6 +117,8 @@ cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
 ```
 
 LS < LA?? EU < NA?
+SPØR OM HVORFOR LS IKKE ER OPTIMAL...
+
 
 ## 2.
 We now want to compute a $95\%$ prediction interval for $x_{101}$ based on both the LS and the LA estimator. We use the bootstrapped time-series and the 1500 estimates for $\boldsymbol \beta$ obtained in part 1. to estimate the residual distribution, then we use the following formula to simulate a value $x_{101}$ for the observed time-series
@@ -200,10 +202,7 @@ ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogr
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
-We see that both the prediction interval values, and the histograms achieved from this method...
-Histogram ved å bruke e.observed
-Histogrammene er veldig like, noe vi også forventer siden residuals burde bli ganske like i bootstrap regression of de faktiske
-
+We see that both the prediction interval values, and the histograms achieved from this method are very similar to the first method. This result is as expected, as the residuals should have the same distribution due to the nature of bootstrapping. The bootstrapped time-series are created by bootstrapping the observed residuals, and the time-series are then used to create the residuals used in the first method.
 
 # Problem B: Permutation test
 
