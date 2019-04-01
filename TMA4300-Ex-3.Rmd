@@ -24,10 +24,12 @@ opts_chunk$set(tidy.opts = list(width.cutoff = 68), tidy = TRUE, warning = FALSE
 In this exercise we want to analyse a non-Gaussian time-series, and compare two different parameter estimators. We consider and AR(2) model, which is specified by the relation
 $$x_t = \beta_xx_{t-1}+\beta_2x_{t-2}+e_t,$$
 where $e_t$ are i.i.d. random variables with zero mean and constant variance. The least sum of squared residuals (LS) and least sum of absolute residuals (LA) are obtained by minimising the following loss functions w.r.t $\boldsymbol \beta$
+
 \begin{align*}
 Q_{LS}(\mathbf{x}) &= \sum_{t=3}^T(x_t-\beta_1x_{t-1}-\beta_2x_{t-2})^2,\\
 Q_{LA}(\mathbf{x}) &= \sum_{t=3}^T|x_t-\beta_1x_{t-1}-\beta_2x_{t-2}|.
 \end{align*}
+
 We denote the minimisers by $\hat{\boldsymbol \beta}_{LS}$ and $\hat{\boldsymbol \beta}_{LA}$, and define the estimated residuals to be $\hat{e}_t= x_t-\hat{\beta}_1x_{t-1}-\hat{\beta}_2x_{t-2}$ for $t=3,\dots,T$, and let $\bar{e}$ be the mean of these. Then we re-center the residuals to have mean zero by defining $\hat{\epsilon}_t = \hat{e}_t - \bar{e}$.
 ```{r, echo = F, eval = T}
 source("probAdata.R")
@@ -274,3 +276,228 @@ cat("p-value: ", (fstatistic_length - index)/fstatistic_length)
 Here we observe an estimate of the p-value to be `r (fstatistic_length - index)/fstatistic_length`, which corresponds well with the original p-value of `r 1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3])`. We could have foreseen that these p-values would be similar by observing, from figure \ref{fig:histogram}, that the distribution of $\{\hat{F}^{(i)}_{H_0}\}$ is very similar to the corresponding Fisher distribution. This gives us reason to believe that the assumptions of the F-test, i.e. that the regression errors are iid. normal, are satisfied and that F-test will yield a correct p-value. 
 
 Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating biliruben in his blood.
+
+# Problem C: The EM-algorithm and bootstrapping
+
+We let ${x_i}$ be iid $\text{Exp}(\lambda_0)$ and ${y_i}$ be iid $\text{Exp}(\lambda_1)$. We assume that we do not observe $x_i$ nor $y_i$ directly but rather observe
+
+$$z_i = \max(x_i, y_i)$$
+and
+$$u_i = I(x_i > y_i)$$
+Based on the observed $(z_i,u_i) \quad i= 1,\dots,n$ we want use the Expecation-Maximization algorithm to find the maximum likelihood estimates for $(\lambda_0,\lambda_1)$. We formulate the conditional probability of $\mathbf{x}$ and $\mathbf{y}$ given $(\lambda_0, \lambda_1)$. 
+
+$$ f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = \lambda_0 \exp \{-\lambda_0 x_i \} \lambda_1 \exp \{-\lambda_1 y_i \}$$
+$$f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = \prod_{i=1}^n f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = (\lambda_0 \lambda_1)^n \exp \big (-\lambda_0 \sum_{i=1}^n x_i \big )\exp \big (-\lambda_1 \sum_{i=1}^n y_i \big ) $$
+
+$$ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^n x_i   -\lambda_1 \sum_{i=1}^n y_i$$
+## 1. 
+
+We now find the conditional probability of $x_i$ given $z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}$
+
+$$f_{X_i} (x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}) = \begin{cases}\frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}}, \quad u_i = 0 \\
+z_i, \quad u_i = 1
+\end{cases}$$
+
+$$f_{Y_i} (y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}) = \begin{cases}z_i, \quad u_i = 0 \\
+\frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}}, \quad u_i = 1
+\end{cases}$$
+
+And use it to formulate the expectation
+
+$$E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
+\\=  n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ]   - \lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]
+$$
+
+$$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_0^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
+\\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)
+$$
+
+$$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_0^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} y_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dy_i 
+\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)
+$$
+
+yielding,
+
+$$\begin{aligned} 
+Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)}) = E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
+&=  n (\ln \lambda_0 + \ln \lambda_1) \\ 
+&-\lambda_0 \sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg) \\
+&- \lambda_1 \sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg).
+\end{aligned}
+$$
+## 2.
+
+This function $Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)})$ admits a maximum, which we can find using
+
+$$\frac{\partial }{\partial \lambda_0} Q= 0 \quad\quad \frac{\partial }{\partial \lambda_1}Q= 0
+$$
+
+Giving 
+$$ \lambda_0 = \frac{n}{\sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)}
+\\ \lambda_1 = \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)},
+$$
+
+which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this recursion to 
+
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$. \\label{fig:conv_lamb}"}
+u = as.vector(unlist(read.table("u.txt")))
+z = as.vector(unlist(read.table("z.txt")))
+
+lambda = array(dim=c(30, 2))
+lambda[1,] = c(1, 6)
+
+
+for(i in 2:dim(lambda)[1]){
+  lambda[i, 1] = length(u) / sum(u*z + (1-u)*(1/lambda[i-1, 1] - z / (exp(lambda[i-1, 1]*z - 1))))
+  lambda[i, 2] = length(u) / sum((1-u)*z + u*(1/lambda[i-1, 2] - z / (exp(lambda[i-1, 2]*z - 1))))
+}
+
+lambda_orig = lambda[dim(lambda)[1],]
+
+df = data.frame(n = 1:dim(lambda)[1], lambda)
+
+ggplot() + geom_line(data = df, aes(x = n, y = X1, col="lambda_0")) + geom_line(data = df, aes(x = n, y = X2, col="lambda_1")) + ylab("")
+```
+
+## 3).
+
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="The distribution of the bootstrap samples of the EM-estimates of $(\\lambda_0, \\lambda_1)$. \\label{fig:bs_lamb}"}
+algorithmEM = function(u,z){
+  lambda = runif(2)
+  lambda_old = c(-1, -1)
+  while(sum((lambda - lambda_old)^2)>1e-8){
+    lambda_old = lambda
+    lambda[1] = length(u) / sum(u*z + (1-u)*(1/lambda[1] - z / (exp(lambda[1]*z - 1))))
+    lambda[2] = length(u) / sum((1-u)*z + u*(1/lambda[2] - z / (exp(lambda[2]*z - 1))))
+  }
+  return(lambda)
+}
+
+n_bs = 20000
+lambda_bs = array(dim = c(n_bs, 2))
+
+for (i in 1:n_bs){
+  index = sample(1:length(u), replace=T)
+  u_bs = u[index]
+  z_bs = z[index]
+  lambda_bs[i,] = algorithmEM(u_bs, z_bs)
+}
+
+df1 = data.frame(idx = 1, x = lambda_bs[, 1], x0 = lambda_orig[1], mean = mean(lambda_bs[, 1]))
+df2 = data.frame(idx = 2, x = lambda_bs[, 2], x0 = lambda_orig[2], mean = mean(lambda_bs[, 2]))
+df_bs = rbind(df1, df2)
+
+
+ggplot() + geom_histogram(data = df_bs, aes(x = x, y = ..density.., col="bootstrap samples"), bins=100) + geom_vline(aes(xintercept = x0, col="original MLE"), data = df_bs, lwd=1.0) +
+geom_vline(aes(xintercept = mean, col="bootstrap mean"), data = df_bs, lwd=1.0) + xlim(2, 15)+ facet_wrap(~idx)
+
+```
+```{r, echo=T, eval=T}
+bias = c(mean(lambda_bs[, 1]), mean(lambda_bs[, 2])) - lambda_orig
+bias
+cov(lambda_bs)
+cor(lambda_bs)
+```
+
+## 4).
+
+As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$.
+
+$$P(z_i \leq z) = P(x_i \leq z_i) P(y_i \leq z_i) = (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i}) \\
+F_{Z_i}(z_i) = (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i})$$
+
+$$ f_{Z_i}(z_i) = F_{Z_i}'(z_i) =  \lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i}$$
+
+$$ f_{U_i \lvert Z_i}(u_i \lvert z_i) = \begin{cases} \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 0 \\
+\frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 1 
+\end{cases}$$
+
+$$f_{Z_i, U_i}(z_i, u_i) = (\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i})\cdot  \begin{cases} \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 0 \\
+\frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 1 
+\end{cases}$$
+
+$$ \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u}) = \sum_{i=1}^n \log \Big(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} \Big) \\
++ \sum_{u_i = 0} \log \Big( \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \Big ) \\
++ \sum_{u_1 = 1} \log \Big( \frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}\Big)$$
+
+Taking the partial derivative wrt to $\lambda_0$ we get
+
+$$ \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = \sum_{i=1}^n \frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } \\
++ \sum_{u_i = 0} \frac{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i}} \cdot 
+\frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}) - e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_0 e^{-\lambda_0 z_i})}{(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i})^2}
+
+\\
++ \sum_{u_i = 1} \frac{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i}} \cdot 
+\frac{-e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_1 e^{-\lambda_1 z_i})}{(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i})^2},$$
+which we simplify to
+
+$$\begin{equation} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = \sum_{i=1}^n \frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
+\\
++ \sum_{u_i = 0} \frac{(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
+\\
++ \sum_{u_i = 1} \frac{-(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
+\end{equation}$$
+
+We do the same for $\lambda_1$ and get
+
+$$\begin{equation} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = \sum_{i=1}^n \frac{e^{-\lambda_1 z_i}(1 - \lambda_1 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
+\\
++ \sum_{u_i = 0} \frac{-(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
+\\
++ \sum_{u_i = 1} \frac{(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
+\end{equation}$$
+
+We can then find the maximum-likelhood parameters $(\lambda_0, \lambda_1)$ by setting
+
+$$ \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = 0 \quad \quad \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = 0$$
+
+$$ \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u}) = \sum_{i=1}^n \log \Big(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} \Big) \\
++ \sum_{u_i = 0} \log \Big( \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \Big ) \\
++ \sum_{u_i = 1} \log \Big( \frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}\Big)$$
+
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="The log-likelihood $\\log f_{\\mathbf{Z}, \\mathbf{U}}(\\mathbf{z}, \\mathbf{u})$ as well as its optimum and the EM-estimate of $(\\lambda_0, \\lambda_1)$. \\label{fig:llik_lamb}"}
+
+loglik = function(x){
+  lambda_0 = x[1]
+  lambda_1 = x[2]
+  res = 0
+  res = res + sum(log(lambda_0 * exp(-lambda_0 * z) + lambda_1 * exp(-lambda_1 * z) - (lambda_0 + lambda_1)*exp(-(lambda_0 + lambda_1)*z)))
+  
+  res = res + sum(u*log((lambda_0*exp(-lambda_0*z)) / (lambda_0*exp(-lambda_0*z) + lambda_1*exp(-lambda_1*z))))
+  
+  res = res + sum((1-u)*log((lambda_1*exp(-lambda_1*z)) / (lambda_0*exp(-lambda_0*z) + lambda_1*exp(-lambda_1*z))))
+  
+  return(res)
+}
+
+
+lambda_optim = optim(par=c(1, 1), fn=loglik, control = list(fnscale = -1))$par
+
+x0 = seq(2, 6, length.out = 30)
+x1 = seq(9, 13, length.out = 30)
+out = array(dim = c(30, 30, 3))
+
+for (i in 1:30){
+  for (j in 1:30){
+    out[i, j, 1] = x0[i]
+    out[i, j, 2] = x1[j]
+    out[i, j, 3] = loglik(c(x0[i], x1[j]))
+  }
+}
+
+df = data.frame(lambda_0 = as.vector(out[,, 1]), lambda_1 = as.vector(out[,,2]), llik = as.vector(out[,,3]))
+df_dot1 = data.frame(lambda_0 = lambda_orig[1], lambda_1 = lambda_orig[2])
+df_dot3 = data.frame(lambda_0 = mean(lambda_bs[, 1]), lambda_1 = mean(lambda_bs[, 2]))
+df_dot2 = data.frame(lambda_0 = lambda_optim[1], lambda_1 = lambda_optim[2])
+
+ggplot() + geom_contour(data = df, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=10) + geom_point(data = df_dot1, aes(x = lambda_0, y = lambda_1, col="EM-estimate")) + geom_point(data = df_dot2, aes(x = lambda_0, y = lambda_1, col="optimized")) + geom_point(data = df_dot3, aes(x = lambda_0, y = lambda_1, col="bootstrap mean"))
+```
+
+```{r}
+loglik(lambda_optim)
+loglik(lambda_orig)
+```
+
+
+From the book
+The linearconvergence of EM can be extremely slow compared to the quadratic convergence of,say, Newton’s method, particularly when the fraction of missing information is large.However, the ease of implementation and the stable ascent of EM are often very at-tractive despite its slow convergence.
