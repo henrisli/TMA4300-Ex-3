@@ -139,10 +139,10 @@ for (i in 1:B){
   x.101.LA[i] = x.101.LA[i] + sample(e.bootstrapped.beta.LA[i,], size = 1)
 }
 
-df = data.frame(x = x.101.LS)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
-df = data.frame(x = x.101.LA)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+df.LS = data.frame(x = x.101.LS)
+ggplot(df.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df.LA = data.frame(x = x.101.LA)
+ggplot(df.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -159,10 +159,10 @@ for (i in 1:B){
   x.101.LA[i] = x.101.LA[i] + sample(e.bootstrapped.beta.LA[i,], size = 1)
 }
 
-df = data.frame(x = x.101.LS)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
-df = data.frame(x = x.101.LA)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+df.LS = data.frame(x = x.101.LS)
+ggplot(df.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df.LA = data.frame(x = x.101.LA)
+ggplot(df.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -171,8 +171,8 @@ We observe that the histograms from the two different estimation methods look ve
 If we study the histograms, we also see that we get some really large simulated values for $x_{101}$. However, these large values do not appear frequent enough to appear in the $95\%$ prediction intervals. The reason why these large values appear becomes evident if we plot a histogram of the residual distribution. This is done for the distribution based on LS estimates in figure \ref{fig:resdist}, and the distribution based on LA estimates will be very similar.
 
 ```{r, echo = T, eval = T, out.width = "50%", fig.align = "center", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of beta. \\label{fig:resdist}"}
-df = data.frame(x= as.vector(e.bootstrapped.beta.LS))
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of residual distribution based on bootstrapped LS estimates of beta") + xlab("residual")
+df.e = data.frame(x= as.vector(e.bootstrapped.beta.LS))
+ggplot(df.e, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of residual distribution based on bootstrapped LS estimates of beta") + xlab("residual")
 ```
 From figure \ref{fig:resdist}, we see that some residuals have a value of $\simeq 30$, while the rest are concentrated in the range $[-10,10]$. This explains the observed large values for $x_{101}$.
 
@@ -184,10 +184,10 @@ set.seed(4300)
 residuals = sample(e.observed.LS, size = B, replace = T)
 x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
 x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
-df = data.frame(x = x.101.LS)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
-df = data.frame(x = x.101.LA)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+df.bs.LS = data.frame(x = x.101.LS)
+ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df.bs.LA = data.frame(x = x.101.LA)
+ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -196,10 +196,10 @@ set.seed(4300)
 residuals = sample(e.observed.LS, size = B, replace = T)
 x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
 x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
-df = data.frame(x = x.101.LS)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
-df = data.frame(x = x.101.LA)
-ggplot(df, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
+df.bs.LS = data.frame(x = x.101.LS)
+ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LS estimators") + xlab("x_101")
+df.bs.LA = data.frame(x = x.101.LA)
+ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of x_101 based on LA estimators") + xlab("x_101")
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -385,8 +385,8 @@ for (i in 1:n_bs){
   lambda_bs[i,] = algorithmEM(u_bs, z_bs)
 }
 
-df1 = data.frame(idx = 1, x = lambda_bs[, 1], x0 = lambda_orig[1], mean = mean(lambda_bs[, 1]))
-df2 = data.frame(idx = 2, x = lambda_bs[, 2], x0 = lambda_orig[2], mean = mean(lambda_bs[, 2]))
+df1 = data.frame(idx = "lambda_0", x = lambda_bs[, 1], x0 = lambda_orig[1], mean = mean(lambda_bs[, 1]))
+df2 = data.frame(idx = "lambda_1", x = lambda_bs[, 2], x0 = lambda_orig[2], mean = mean(lambda_bs[, 2]))
 df_bs = rbind(df1, df2)
 
 
@@ -395,8 +395,8 @@ geom_vline(aes(xintercept = mean, col="bootstrap mean"), data = df_bs, lwd=1.0) 
 
 ```
 ```{r, echo=T, eval=T}
-bias = c(mean(lambda_bs[, 1]), mean(lambda_bs[, 2])) - lambda_orig
-bias
+bias = apply(lambda_bs,2,mean) - lambda_orig
+cat("Bias of the bootstrapped samples: ", bias, "\n")
 cov(lambda_bs)
 cor(lambda_bs)
 ```
