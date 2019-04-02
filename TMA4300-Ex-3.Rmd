@@ -118,8 +118,7 @@ cat("Variance of beta.LS: ", bootstrap.variance.LS, "\n")
 cat("Variance of beta.LA: ", bootstrap.variance.LA, "\n")
 ```
 
-LS < LA?? EU < NA?
-SPØR OM HVORFOR LS IKKE ER OPTIMAL...
+We know that for a Gaussian $AR(p)$ process, the LS estimator will be optimal. However, from the print-out above, we see that the LA estimator both has smaller bias and smaller variance than the LS estimator. Our data is not Gaussian, which explains why the LA estimator is optimal and not the LS estimator.
 
 
 ## 2.
@@ -296,6 +295,7 @@ $$ f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = \lambda_0 e^{-\lambda_0
 $$f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = \prod_{i=1}^n f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = (\lambda_0 \lambda_1)^n \exp \big (-\lambda_0 \sum_{i=1}^n x_i \big )\exp \big (-\lambda_1 \sum_{i=1}^n y_i \big ) $$
 
 $$ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^n x_i   -\lambda_1 \sum_{i=1}^n y_i$$
+
 ## 1. 
 
 We now find the conditional probability of $x_i$ given $z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}$
@@ -314,13 +314,12 @@ $$E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \l
 \\=  n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ]   - \lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]
 $$
 
-$$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_0^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
+$$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
 \\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)
 $$
 
-$$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_0^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} y_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dy_i 
-\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)
-$$
+$$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}} dy_i 
+\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)$$
 
 yielding,
 
@@ -331,6 +330,7 @@ Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)}) = E_{\mathbf{x},
 &- \lambda_1 \sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg).
 \end{aligned}
 $$
+
 ## 2.
 
 This function $Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)})$ admits a maximum, which we can find using
@@ -339,42 +339,45 @@ $$\frac{\partial }{\partial \lambda_0} Q= 0 \quad\quad \frac{\partial }{\partial
 $$
 
 Giving 
-$$ \lambda_0 = \frac{n}{\sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)}
-\\ \lambda_1 = \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)},
-$$
+\begin{align*} \lambda_0 &= \frac{n}{\sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)},
+\\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)},
+\end{align*}
 
 which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this recursion to 
 
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$. \\label{fig:conv_lamb}"}
-u = as.vector(unlist(read.table("u.txt")))
-z = as.vector(unlist(read.table("z.txt")))
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
+u = read.table("u.txt")[,1]
+z = read.table("z.txt")[,1]
+n = length(u)
 
-lambda = array(dim=c(30, 2))
+n.iterations = 30
+lambda = array(dim=c(n.iterations, 2))
 lambda[1,] = c(1, 6)
 
 
-for(i in 2:dim(lambda)[1]){
-  lambda[i, 1] = length(u) / sum(u*z + (1-u)*(1/lambda[i-1, 1] - z / (exp(lambda[i-1, 1]*z - 1))))
-  lambda[i, 2] = length(u) / sum((1-u)*z + u*(1/lambda[i-1, 2] - z / (exp(lambda[i-1, 2]*z - 1))))
+for(i in 2:n.iterations){
+  lambda[i, 1] = n / sum(u*z + (1-u)*(1/lambda[i-1, 1] - z / (exp(lambda[i-1, 1]*z - 1))))
+  lambda[i, 2] = n / sum((1-u)*z + u*(1/lambda[i-1, 2] - z / (exp(lambda[i-1, 2]*z - 1))))
 }
 
-lambda_orig = lambda[dim(lambda)[1],]
+lambda_orig = lambda[n.iterations,]
 
-dfem = data.frame(n = 1:dim(lambda)[1], lambda)
 
-ggplot() + geom_line(data = dfem, aes(x = n, y = X1, col="lambda_0")) + geom_line(data = dfem, aes(x = n, y = X2, col="lambda_1")) + ylab("")
+df = data.frame(n = 1:n.iterations, lambda)
+
+ggplot() + geom_line(data = df, aes(x = n, y = X1, col="lambda_0")) + geom_line(data = df, aes(x = n, y = X2, col="lambda_1")) + ylab("") + ggtitle("Convergence plot for lambda_0 and lambda_1")
 ```
 
 ## 3).
 
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="The distribution of the bootstrap samples of the EM-estimates of $(\\lambda_0, \\lambda_1)$. \\label{fig:bs_lamb}"}
+```{r, echo=T, eval=T, out.width="80%", fig.align="center", fig.cap="The distribution of the bootstrap samples of the EM-estimates of $(\\lambda_0, \\lambda_1)$. \\label{fig:bs_lamb}"}
 algorithmEM = function(u,z){
   lambda = runif(2)
   lambda_old = c(-1, -1)
   while(sum((lambda - lambda_old)^2)>1e-8){
     lambda_old = lambda
-    lambda[1] = length(u) / sum(u*z + (1-u)*(1/lambda[1] - z / (exp(lambda[1]*z - 1))))
-    lambda[2] = length(u) / sum((1-u)*z + u*(1/lambda[2] - z / (exp(lambda[2]*z - 1))))
+    lambda[1] = n / sum(u*z + (1-u)*(1/lambda[1] - z / (exp(lambda[1]*z - 1))))
+    lambda[2] = n / sum((1-u)*z + u*(1/lambda[2] - z / (exp(lambda[2]*z - 1))))
   }
   return(lambda)
 }
@@ -383,7 +386,7 @@ n_bs = 20000
 lambda_bs = array(dim = c(n_bs, 2))
 
 for (i in 1:n_bs){
-  index = sample(1:length(u), replace=T)
+  index = sample(1:n, replace=T)
   u_bs = u[index]
   z_bs = z[index]
   lambda_bs[i,] = algorithmEM(u_bs, z_bs)
