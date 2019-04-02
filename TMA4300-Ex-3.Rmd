@@ -286,7 +286,7 @@ and
 $$u_i = I(x_i > y_i)$$
 Based on the observed $(z_i,u_i) \quad i= 1,\dots,n$ we want use the Expecation-Maximization algorithm to find the maximum likelihood estimates for $(\lambda_0,\lambda_1)$. We formulate the conditional probability of $\mathbf{x}$ and $\mathbf{y}$ given $(\lambda_0, \lambda_1)$. 
 
-$$ f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = \lambda_0 \exp \{-\lambda_0 x_i \} \lambda_1 \exp \{-\lambda_1 y_i \}$$
+$$ f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = \lambda_0 e^{-\lambda_0 x_i } \lambda_1 e^{-\lambda_1 y_i }$$
 $$f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = \prod_{i=1}^n f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = (\lambda_0 \lambda_1)^n \exp \big (-\lambda_0 \sum_{i=1}^n x_i \big )\exp \big (-\lambda_1 \sum_{i=1}^n y_i \big ) $$
 
 $$ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^n x_i   -\lambda_1 \sum_{i=1}^n y_i$$
@@ -416,65 +416,55 @@ $$f_{Z_i, U_i}(z_i, u_i) = (\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda
 \frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 1 
 \end{cases}$$
 
-$$ \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u}) = \sum_{i=1}^n \log \Big(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} \Big) \\
-+ \sum_{u_i = 0} \log \Big( \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \Big ) \\
-+ \sum_{u_1 = 1} \log \Big( \frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}\Big)$$
+\begin{align}\log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u}) 
+&= \sum_{i=1}^n \log \Big(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} \Big) \\
+&- \sum_{u_i = 0} \log \Big( 1 + \frac{\lambda_1}{\lambda_0} e^{- (\lambda_1 - \lambda_0) z_i} \Big ) \\
+&- \sum_{u_i = 1} \log \Big( 1 + \frac{\lambda_0}{\lambda_1} e^{-(\lambda_0 - \lambda_1) z_i}\Big)
+\end{align}
 
 Taking the partial derivative wrt to $\lambda_0$ we get
 
-$$ \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = \sum_{i=1}^n \frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } \\
-+ \sum_{u_i = 0} \frac{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i}} \cdot 
-\frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}) - e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_0 e^{-\lambda_0 z_i})}{(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i})^2}
-
+\begin{align} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} 
+&= \sum_{i=1}^n \frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
 \\
-+ \sum_{u_i = 1} \frac{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i}} \cdot 
-\frac{-e^{-\lambda_0 z_i}(1 - \lambda_0 z_i)(\lambda_1 e^{-\lambda_1 z_i})}{(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i})^2},$$
-which we simplify to
-
-$$\begin{equation} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = \sum_{i=1}^n \frac{e^{-\lambda_0 z_i}(1 - \lambda_0 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
+&+ \sum_{u_i = 0} \frac{(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
 \\
-+ \sum_{u_i = 0} \frac{(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
-\\
-+ \sum_{u_i = 1} \frac{-(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
-\end{equation}$$
+&+ \sum_{u_i = 1} \frac{-(\frac{1}{\lambda_0} - z_i)\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
+\end{align}
 
 We do the same for $\lambda_1$ and get
 
-$$\begin{equation} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = \sum_{i=1}^n \frac{e^{-\lambda_1 z_i}(1 - \lambda_1 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
+\begin{align} \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} 
+&= \sum_{i=1}^n \frac{e^{-\lambda_1 z_i}(1 - \lambda_1 z_i) - e^{-(\lambda_0 + \lambda_1)z_i}(1-z_i(\lambda_0 + \lambda_1))}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} } 
 \\
-+ \sum_{u_i = 0} \frac{-(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
+&+ \sum_{u_i = 0} \frac{-(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}
 \\
-+ \sum_{u_i = 1} \frac{(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
-\end{equation}$$
+&+ \sum_{u_i = 1} \frac{(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
+\end{align}
 
 We can then find the maximum-likelhood parameters $(\lambda_0, \lambda_1)$ by setting
 
 $$ \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0} = 0 \quad \quad \frac{\partial f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = 0$$
-
-$$ \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u}) = \sum_{i=1}^n \log \Big(\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i} \Big) \\
-+ \sum_{u_i = 0} \log \Big( \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \Big ) \\
-+ \sum_{u_i = 1} \log \Big( \frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}\Big)$$
 
 ```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="The log-likelihood $\\log f_{\\mathbf{Z}, \\mathbf{U}}(\\mathbf{z}, \\mathbf{u})$ as well as its optimum and the EM-estimate of $(\\lambda_0, \\lambda_1)$. \\label{fig:llik_lamb}"}
 
 loglik = function(x){
   lambda_0 = x[1]
   lambda_1 = x[2]
-  res = 0
-  res = res + sum(log(lambda_0 * exp(-lambda_0 * z) + lambda_1 * exp(-lambda_1 * z) - (lambda_0 + lambda_1)*exp(-(lambda_0 + lambda_1)*z)))
-  
-  res = res + sum(u*log((lambda_0*exp(-lambda_0*z)) / (lambda_0*exp(-lambda_0*z) + lambda_1*exp(-lambda_1*z))))
-  
-  res = res + sum((1-u)*log((lambda_1*exp(-lambda_1*z)) / (lambda_0*exp(-lambda_0*z) + lambda_1*exp(-lambda_1*z))))
-  
+  # 1st sum
+  res = sum(log(lambda_0 * exp(-lambda_0 * z) + lambda_1 * exp(-lambda_1 * z) - (lambda_0 + lambda_1)*exp(-(lambda_0 + lambda_1)*z)))
+  # 2nd sum
+  res = res - sum(u*log(1 + lambda_1 / lambda_0 * exp(-(lambda_1 - lambda_0)*z)))
+  # 3rd sum
+  res = res - sum((1-u)*log(1 + lambda_0 / lambda_1 * exp(-(lambda_0 - lambda_1)*z)))
   return(res)
 }
 
 
-lambda_optim = optim(par=c(1, 1), fn=loglik, control = list(fnscale = -1))$par
+lambda_optim = optim(par=c(4, 12), fn=loglik, control = list(fnscale = -1, maxit=1000))$par
 
-x0 = seq(2, 6, length.out = 30)
-x1 = seq(9, 13, length.out = 30)
+x0 = seq(1, 10, length.out = 30)
+x1 = seq(1, 20, length.out = 30)
 out = array(dim = c(30, 30, 3))
 
 for (i in 1:30){
@@ -490,7 +480,7 @@ df_dot1 = data.frame(lambda_0 = lambda_orig[1], lambda_1 = lambda_orig[2])
 df_dot3 = data.frame(lambda_0 = mean(lambda_bs[, 1]), lambda_1 = mean(lambda_bs[, 2]))
 df_dot2 = data.frame(lambda_0 = lambda_optim[1], lambda_1 = lambda_optim[2])
 
-ggplot() + geom_contour(data = df, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=10) + geom_point(data = df_dot1, aes(x = lambda_0, y = lambda_1, col="EM-estimate")) + geom_point(data = df_dot2, aes(x = lambda_0, y = lambda_1, col="optimized")) + geom_point(data = df_dot3, aes(x = lambda_0, y = lambda_1, col="bootstrap mean"))
+ggplot() + geom_contour(data = df, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=10)  + geom_point(data = df_dot1, aes(x = lambda_0, y = lambda_1, col="EM-estimate"), size=3) + geom_point(data = df_dot2, aes(x = lambda_0, y = lambda_1, col="optimized"), size=3) + geom_point(data = df_dot3, aes(x = lambda_0, y = lambda_1, col="bootstrap mean"), size=3)
 ```
 
 ```{r}
