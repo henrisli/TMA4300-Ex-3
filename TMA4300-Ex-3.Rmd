@@ -292,15 +292,17 @@ We let $\{x_i\}_{i=1,\dots,n}$ be iid $\text{Exp}(\lambda_0)$ and $\{y_i\}_{i=1,
 $$z_i = \max(x_i, y_i), \quad \text{and} \quad u_i = I(x_i \geq y_i), \quad i = 1, \dots, n,$$
 where $I(\cdot)$ is the indicator function. This means that we only observe the largest of the pair $(x_i, y_i)$ and we know whether the observed value is $x_i$ or $y_i$.
 
-Based on the observed $(z_i,u_i) \quad i= 1,\dots,n$ we want use the Expecation-Maximization algorithm to find the maximum likelihood estimates for $(\lambda_0,\lambda_1)$. We first formulate the conditional probability of $\mathbf{x} = (x_1,\dots,x_n)$ and $\mathbf{y} = (y_1,\dots,y_n)$ given $(\lambda_0, \lambda_1)$. 
+Based on the observed $(z_i,u_i) \quad i= 1,\dots,n$ we want use the Expecation-Maximization algorithm to find the maximum likelihood estimates for $(\lambda_0,\lambda_1)$.
+
+## 1.
+
+We first formulate the conditional probability of $\mathbf{x} = (x_1,\dots,x_n)$ and $\mathbf{y} = (y_1,\dots,y_n)$ given $(\lambda_0, \lambda_1)$. 
 
 $$ f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = f_{X_i} (x_i \lvert \lambda_0) f_{Y_i} (y_i \lvert \lambda_1)= \lambda_0 e^{-\lambda_0 x_i } \lambda_1 e^{-\lambda_1 y_i },$$
 because $x_i$ and $y_i$ are assumed independent. This gives
 $$f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = \prod_{i=1}^n f_{X_i, Y_i} (x_i, y_i \lvert \lambda_0, \lambda_1) = (\lambda_0 \lambda_1)^n \exp \big (-\lambda_0 \sum_{i=1}^n x_i \big )\exp \big (-\lambda_1 \sum_{i=1}^n y_i \big ),$$
 and finally the loglikelihood
 $$ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) = n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^n x_i   -\lambda_1 \sum_{i=1}^n y_i.$$
-
-## 1. 
 
 We now find the conditional probabilities of $x_i$ and $y_i$ given $z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}$
 
@@ -315,15 +317,15 @@ $$f_{Y_i} (y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}) = \begin{cases
 Then we use these to formulate the expectation
 
 $$E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
-\\=  n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ]   - \lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]
+\\=  n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ]   - \lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}],
 $$
 
 $$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
-\\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)
+\\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg),
 $$
 
 $$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}} dy_i 
-\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)$$
+\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg),$$
 
 yielding,
 
