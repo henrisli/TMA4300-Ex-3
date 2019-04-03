@@ -419,6 +419,8 @@ cov(lambda_bs)
 cor(lambda_bs)
 ```
 
+SKRIV NOE HER
+
 ## 4).
 
 As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$ as the maximum of the two exponentially distributed variables $x_i$ and $y_i$. 
@@ -533,7 +535,8 @@ cat("loglik MLE:", loglik(lambda_optim), "\n")
 
 We see that there is very little difference in the log-likelihood. From the plot \ref{fig:llik_lamb} we see that in a neighbouring area of the MLE $(\hat{\lambda}_0, \hat{\lambda}_1)$ the slope of the log-likelihood is very weak. We suspect that, as a result, the convergence criteria of the EM-algorithm will be satisfied before it can converge to the MLE. 
 
-We note that, in general, the linear convergence of EM can be slow compared to the convergence of classical optimization techniques. While we have here used Nelder-Mead, which also 
+We note that, in general, the linear convergence of EM can be slow compared to the convergence of classical optimization techniques. With the analytical likelihood, we can formulate the derivatives of the loglikelihood and rely on the well-developed theory of derivative-based optimization techniques. If we also formulate the hessian we can attain the quadratic convergence of the Newton's method. In practice we can then also use optimization frameworks such as R's `optim` function or Python's `scipy.linalg`.
 
+Additionally, it will be difficult to formulate fitting convergence criteria for the EM algorithm. Typically the algorithm is set to terminate when the norm of the change from one iteration to the next reaches some lower value. However, this lower value must be chosen in accordance with the slope of the loglikelihood around the MLE. As we saw in this case, it is difficult to do this without first also formulating the analytical loglikelihood. 
 
-particularly when the fraction of missing information is large.However, the ease of implementation and the stable ascent of EM are often very attractive despite its slow convergence.
+However, the ease of implementation and the stable ascent of EM are often very attractive despite its slow convergence.
