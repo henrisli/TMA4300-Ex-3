@@ -389,8 +389,8 @@ algorithmEM = function(u,z){
   lambda_old = c(-1, -1)
   while(sum((lambda - lambda_old)^2)>1e-12){
     lambda_old = lambda
-    lambda[1] = n / sum(u*z + (1-u)*(1/lambda[1] - z / (exp(lambda[1]*z - 1))))
-    lambda[2] = n / sum((1-u)*z + u*(1/lambda[2] - z / (exp(lambda[2]*z - 1))))
+    lambda[1] = n / sum(u*z + (1-u)*(1/lambda[1] - z / (exp(lambda[1]*z) - 1)))
+    lambda[2] = n / sum((1-u)*z + u*(1/lambda[2] - z / (exp(lambda[2]*z) - 1)))
   }
   return(lambda)
 }
@@ -424,6 +424,11 @@ SKRIV NOE HER
 ## 4).
 
 As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$ as the maximum of the two exponentially distributed variables $x_i$ and $y_i$. 
+
+\begin{align*}
+P(z_i\leq z) = F_{Z_i}(z_i)&=\begin{cases}\int_0^z \int_0^y \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dxdy, &\text{ if }u_i=0\\\int_0^z \int_0^x \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dydx, &\text{ if }u_i=1\end{cases}\\
+&= \begin{cases}\frac{\lambda_1(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_1z}+1, &\text{ if }u_i=0\\\frac{\lambda_0(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_0z}+1, &\text{ if }u_i=1 \end{cases}
+\end{align*}
 
 \begin{align*}
 P(z_i \leq z) &= P(x_i \leq z_i) P(y_i \leq z_i) = (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i}) \\
@@ -488,14 +493,20 @@ loglik = function(x){
   # 1st sum
   res = sum(log(lambda_0 * exp(-lambda_0 * z) + lambda_1 * exp(-lambda_1 * z) - (lambda_0 + lambda_1)*exp(-(lambda_0 + lambda_1)*z)))
   # 2nd sum
-  res = res - sum(u*log(1 + lambda_1 / lambda_0 * exp(-(lambda_1 - lambda_0)*z)))
+  res = res - sum(log(1 + lambda_1 / lambda_0 * exp(-(lambda_1 - lambda_0)*z[which(u==1)])))
   # 3rd sum
-  res = res - sum((1-u)*log(1 + lambda_0 / lambda_1 * exp(-(lambda_0 - lambda_1)*z)))
+  res = res - sum(log(1 + lambda_0 / lambda_1 * exp(-(lambda_0 - lambda_1)*z[which(u==0)])))
   return(res)
 }
 
+loglik2 = function(x){
+  lambda_0 = x[1]
+  lambda_1 = x[2]
+  return(sum(-z[which(u==0)]*(lambda_0+lambda_1)+log(exp(lambda_0*z[which(u==0)])-1)+log(lambda_1)) + sum(-z[which(u==1)]*(lambda_0+lambda_1)+log(exp(lambda_1*z[which(u==1)])-1)+log(lambda_0)))
+}
+
 # Find optimal lambda using derivative-free optimization with initial guess of (4, 12)
-lambda_optim = optim(par=c(4, 12), fn=loglik, control = list(fnscale = -1, maxit=1000, reltol=1e-16, ndeps=1e-6))$par
+lambda_optim = optim(par=c(4, 12), fn=loglik2, control = list(fnscale = -1, maxit=1000, reltol=1e-16, ndeps=1e-6))$par
 
 # Define area as [1, 7] x [1, 15]
 x0 = seq(1, 7, length.out = 30)
@@ -507,7 +518,7 @@ for (i in 1:30){
   for (j in 1:30){
     out[i, j, 1] = x0[i]
     out[i, j, 2] = x1[j]
-    out[i, j, 3] = loglik(c(x0[i], x1[j]))
+    out[i, j, 3] = loglik2(c(x0[i], x1[j]))
   }
 }
 
