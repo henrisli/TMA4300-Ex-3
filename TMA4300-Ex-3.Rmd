@@ -422,30 +422,29 @@ SKRIV NOE HER
 
 ## 4).
 
-As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$ as the maximum of the two exponentially distributed variables $x_i$ and $y_i$. 
+As an alternative to this EM approach we can find the MLE by classical optimization techniques. We notice that for $x_i \geq y_i \Leftrightarrow u_i = 1$ we get
 
+$$ p(Z_i \leq z, U_i = 1) = \int_0^{z} \int_0^{x_i} \lambda_0 e^{-\lambda_0 x_i} \lambda_1 e^{-\lambda_1 x_i} dy_i dx_i \\
+ = \int_0^z \lambda_0 e^{-\lambda_0 x_i} (1-e^{-\lambda_1 x_i})dx_i \\
+$$
+$$p(Z_i = z, U_i = 1) = \frac{d P(Z_i \leq z \lvert U_i = 1)}{dz} = \lambda_0 e^{-\lambda_0 z_i}(1-e^{-\lambda_1 z_i})$$
+
+We do the equivalent for $y_i \geq x_i \Leftrightarrow u_i = 0$ and get
+
+$$p(Z_i = z \lvert U_i = 0) = \lambda_1 e^{-\lambda_1 z_i}(1-e^{-\lambda_0 z_i})$$
+
+We can then formulate the likelihood,
+$$
+L(\lambda_0, \lambda_1 \lvert \mathbf{u}, \mathbf{z}) = \prod_{u_i = 1} \lambda_0 e^{-\lambda_0 z_i}(1-e^{-\lambda_1 z_i}) \prod_{u_i = 0} \lambda_1 e^{-\lambda_1 z_i}(1-e^{-\lambda_0 z_i}),
+$$
+
+and the log-likelihoodof the observations $(\mathbf{z}, \mathbf{u})$
+$$
 \begin{align*}
-P(z_i\leq z) = F_{Z_i}(z_i)&=\begin{cases}\int_0^z \int_0^y \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dxdy, &\text{ if }u_i=0\\\int_0^z \int_0^x \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dydx, &\text{ if }u_i=1\end{cases}\\
-&= \begin{cases}\frac{\lambda_1(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_1z}+1, &\text{ if }u_i=0\\\frac{\lambda_0(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_0z}+1, &\text{ if }u_i=1 \end{cases}
+\ell(\lambda_0, \lambda_1 \lvert \mathbf{u}, \mathbf{z}) &= \sum_{u_i = 1} \log \lambda_0 -\lambda_0 z_i + \log (1-e^{-\lambda_1 z_i}) \\
+&+\sum_{u_i = 0} \log \lambda_1 -\lambda_1 z_i + \log(1-e^{-\lambda_0 z_i})
 \end{align*}
-
-\begin{align*}
-P(z_i \leq z) &= P(x_i \leq z_i) P(y_i \leq z_i) = (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i}) \\
-F_{Z_i}(z_i) &= (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i})
-\end{align*}
-We derive to get the pdf of $z_i$,
-
-$$ f_{Z_i}(z_i) = F_{Z_i}'(z_i) =  \lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i}.$$
-
-If we condition on the value of $z_i$ we get that $u_i$ is Bernoulli-distributed with probabilites 
-$$p(u_i = 1 \lvert z_i) = \frac{f_{X_i}(z_i)}{f_{X_i}(z_i) + f_{Y_i}(z_i)} \quad\text{and}\quad p(u_i = 0 \lvert z_i) = \frac{f_{Y_i}(z_i)}{f_{X_i}(z_i) + f_{Y_i}(z_i)}$$
-
-We combine these results to get the joint of $(z_i, u_i)$
-
-$$f_{Z_i, U_i}(z_i, u_i) = (\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i})\cdot  \begin{cases} \frac{\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 0 \\
-\frac{\lambda_1 e^{-\lambda_1 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}} \quad \quad u_i = 1 
-\end{cases},$$
-
+$$
 and formulate the log-likelihood of the observations $(\mathbf{z}, \mathbf{u})$
 
 \begin{equation}
@@ -489,12 +488,10 @@ However, we here choose to optimize the loglikelihood  given in equation \ref{eq
 loglik = function(x){
   lambda_0 = x[1]
   lambda_1 = x[2]
-  # 1st sum
-  res = sum(log(lambda_0 * exp(-lambda_0 * z) + lambda_1 * exp(-lambda_1 * z) - (lambda_0 + lambda_1)*exp(-(lambda_0 + lambda_1)*z)))
-  # 2nd sum
-  res = res - sum(log(1 + lambda_1 / lambda_0 * exp(-(lambda_1 - lambda_0)*z[which(u==1)])))
-  # 3rd sum
-  res = res - sum(log(1 + lambda_0 / lambda_1 * exp(-(lambda_0 - lambda_1)*z[which(u==0)])))
+  
+  res = sum(u*log(lambda_0 * (1 - exp(-lambda_1 * z)) * exp(-lambda_0 * z)))
+  res = res + sum((1-u)*log(lambda_1 * (1 - exp(-lambda_0 * z)) * exp(-lambda_1 * z)))
+
   return(res)
 }
 
@@ -505,11 +502,11 @@ loglik2 = function(x){
 }
 
 # Find optimal lambda using derivative-free optimization with initial guess of (4, 12)
-lambda_optim = optim(par=c(4, 12), fn=loglik2, control = list(fnscale = -1, maxit=1000, reltol=1e-16, ndeps=1e-6))$par
+lambda_optim = optim(par=c(4, 12), fn=loglik, control = list(fnscale = -1, maxit=1000, reltol=1e-16, ndeps=1e-6))$par
 
 # Define area as [1, 7] x [1, 15]
-x0 = seq(1, 7, length.out = 30)
-x1 = seq(1, 15, length.out = 30)
+x0 = seq(2.5, 4.5, length.out = 30)
+x1 = seq(6, 12, length.out = 30)
 out = array(dim = c(30, 30, 3))
 
 # Compute loglikelihood over area
@@ -517,7 +514,7 @@ for (i in 1:30){
   for (j in 1:30){
     out[i, j, 1] = x0[i]
     out[i, j, 2] = x1[j]
-    out[i, j, 3] = loglik2(c(x0[i], x1[j]))
+    out[i, j, 3] = loglik(c(x0[i], x1[j]))
   }
 }
 
@@ -526,7 +523,7 @@ dfll_dot1 = data.frame(lambda_0 = lambda_orig[1], lambda_1 = lambda_orig[2])
 dfll_dot3 = data.frame(lambda_0 = mean(lambda_bs[, 1]), lambda_1 = mean(lambda_bs[, 2]))
 dfll_dot2 = data.frame(lambda_0 = lambda_optim[1], lambda_1 = lambda_optim[2])
 
-ggplot() + geom_contour(data = dfll, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=10, show.legend=T)  + geom_point(data = dfll_dot1, aes(x = lambda_0, y = lambda_1, col="EM-estimate"), size=2) + geom_point(data = dfll_dot2, aes(x = lambda_0, y = lambda_1, col="optimized"), size=2) + geom_point(data = dfll_dot3, aes(x = lambda_0, y = lambda_1, col="bootstrap mean"), size=2)
+ggplot() + geom_contour(data = dfll, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=4, show.legend=T)  + geom_point(data = dfll_dot1, aes(x = lambda_0, y = lambda_1, col="EM-estimate"), size=2) + geom_point(data = dfll_dot2, aes(x = lambda_0, y = lambda_1, col="optimized"), size=2) + geom_point(data = dfll_dot3, aes(x = lambda_0, y = lambda_1, col="bootstrap mean"), size=2)
 ```
 
 We see from figure \ref{fig:llik_lamb} that the optimization scheme correctly finds the MLE $(\hat{\lambda}_0, \hat{\lambda}_1)$ of $(\lambda_0, \lambda_1)$. We also see that there is some difference between the EM estimates (bootstrap and original) and the estimate found by optimizing the loglikelihood.
