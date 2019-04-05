@@ -438,7 +438,7 @@ $$\log(f_{Z_i}(z_i)) = \begin{cases}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\lo
 We can then find the loglikelihood of the total sample as,
 \begin{equation}
 \begin{split}
-\log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big) = \log\Big(\prod_{i=1}^n f_{Z_i}(z_i)\Big) = \sum_{i=1}^n \log(f_{Z_i}(z_i))\\
+\log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big) &= \log\Big(\prod_{i=1}^n f_{Z_i}(z_i)\Big) = \sum_{i=1}^n \log(f_{Z_i}(z_i))\\
 &= \underset{u_i=0}{\sum_{i=1}^n}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1)\\
 &+ \underset{u_i=1}{\sum_{i=1}^n}\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1).
 \end{split}
