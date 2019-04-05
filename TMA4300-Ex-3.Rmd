@@ -230,7 +230,7 @@ bilirubin['log_meas'] = log(bilirubin$meas)
 ggplot(data = bilirubin, aes(x = pers, y = log_meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
              outlier.size=2, notch=FALSE) + theme_grey()
 ```
-We observe from \ref{boxplot} that the median (the middle bold line) for person 1 and person 2 are very close to eachother and far from the median for person 3. From the 1st and 3rd quartiles of the boxplots (indicated by the lower and upper hinges) we observe that there is little spread in the measurements for person 2, some spread for person 3 and a lot of spread for person 1. The whiskers denote the largest / smallest measurement that is whithin $1.5 * IQR$ (the range between the 1st and 3rd quantile) from the upper / lower hinge. This measures the total spread in the data. For person 1 and person 2 we see that the whiskers extend relatively far into the range of the boxplot of person 3. The medians indicate a large difference between the bilirubin levels of person 1 / 2 and person 3 but observing (from the whiskers) the large spread in the data we should also investigate this significance quantitatively.
+We observe from figure \ref{boxplot} that the median (the middle bold line) for person 1 and person 2 are very close to eachother and far from the median for person 3. From the 1st and 3rd quartiles of the boxplots (indicated by the lower and upper hinges) we observe that there is little spread in the measurements for person 2, some spread for person 3 and a lot of spread for person 1. The whiskers denote the largest / smallest measurement that is whithin $1.5 * IQR$ (the range between the 1st and 3rd quantile) from the upper / lower hinge. This measures the total spread in the data. For person 1 and person 2 we see that the whiskers extend relatively far into the range of the boxplot of person 3. The medians indicate a large difference between the bilirubin levels of person 1 / 2 and person 3 but observing (from the whiskers) the large spread in the data we should also investigate this significance quantitatively.
 
 We fit a linear model $$\log Y_{ij} \sim \beta_{p_j} + e_{ij}, \quad e_{ij} \overset{iid}{\sim} N(0, \sigma^2)$$
 
@@ -276,8 +276,6 @@ for (i in seq(0, fstatistic_length)) {
   fstatistic_values[i] = permTest()
 }
 
-# We now want df to be the Fisher-distribution
-rm(df)
 
 df_fstatistic_values = data.frame(x = fstatistic_values)
 fstatistic_quantiles = quantile(fstatistic_values, probs = c(0.95))
@@ -294,7 +292,7 @@ cat("p-value: ", (fstatistic_length - index)/fstatistic_length)
 
 Here we observe an estimate of the p-value to be `r (fstatistic_length - index)/fstatistic_length`, which corresponds well with the original p-value of `r 1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3])`. We could have foreseen that these p-values would be similar by observing, from figure \ref{fig:histogram}, that the distribution of $\{\hat{F}^{(i)}_{H_0}\}$ is very similar to the corresponding Fisher distribution. This gives us reason to believe that the assumptions of the F-test, i.e. that the regression errors are iid. normal, are satisfied and that F-test will yield a correct p-value. 
 
-Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating biliruben in his blood.
+Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating bilirubin in his blood.
 
 # Problem C: The EM-algorithm and bootstrapping
 
