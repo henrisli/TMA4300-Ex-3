@@ -178,13 +178,17 @@ We observe that the histograms from the two different estimation methods look ve
 
 If we study the histograms, we also see that we get some really large simulated values for $x_{101}$. However, these large values do not appear frequent enough to appear in the $95\%$ prediction intervals. The reason why these large values appear becomes evident if we plot a histogram of the residual distribution. This is done for the distribution based on LS estimates in figure \ref{fig:resdist}, and the distribution based on LA estimates will be very similar.
 
-```{r, echo = T, eval = T, out.width = "50%", fig.align = "center", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of beta. \\label{fig:resdist}"}
+```{r, echo = T, eval = T, out.width = "60%", fig.align = "center", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of $\\boldsymbol{\\beta}$ and original LS estimate of $\\boldsymbol{\\beta}$. \\label{fig:resdist}"}
 df.e = data.frame(x= as.vector(e.bootstrapped.beta.LS))
-ggplot(df.e, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of residual distribution based on bootstrapped LS estimates of beta") + xlab("residual") + theme_grey(base_size = 10)
+df.e.b = data.frame(x = e.observed.LS)
+p3 <- ggplot(df.e, aes(x = x)) + geom_histogram(aes(y = ..density..), bins = 100) + ggtitle("Histogram of residual distribution based \n on bootstrapped LS estimates of beta") + xlab("residual") + theme_grey(base_size = 8)
+p4 <- ggplot(df.e.b, aes(x = x)) + geom_histogram(aes(y = ..density..), bins = 100) + ggtitle("Histogram of residual distribution based \n on original LS estimate of beta") + xlab("residual") + theme_grey(base_size = 8)
+grid.arrange(p3,p4, nrow = 1)
 ```
 From figure \ref{fig:resdist}, we see that some residuals have a value of $\simeq 30$, while the rest are concentrated in the range $[-10,10]$. This explains the observed large values for $x_{101}$.
 
-A different method to estimate the distribution of $x_{101}$ is to use the bootstrapped values of $\boldsymbol \beta$ and simulate the residuals from the initial observed residuals achieved wihtout bootstrapping. This is done below.
+
+We also observe that the residuals from the original LS estimate has almost the same distribution as the residuals from the bootstrapped LS estimates. Thus, we propose a new method to estimate the distribution of $x_{101}$: We use the bootstrapped values of $\boldsymbol \beta$ and simulate the residuals from the initial observed residuals achieved wihtout bootstrapping. This is done below.
 
 
 ```{r, echo = T, eval = F}
@@ -193,10 +197,10 @@ residuals = sample(e.observed.LS, size = B, replace = T)
 x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
 x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
 df.bs.LS = data.frame(x = x.101.LS)
-p3 <- ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LS estimators") + xlab("x_101") + theme_grey(base_size = 8)
+p5 <- ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LS estimators") + xlab("x_101") + theme_grey(base_size = 8)
 df.bs.LA = data.frame(x = x.101.LA)
-p4 <- ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LA estimators") + xlab("x_101") + theme_grey(base_size = 8)
-grid.arrange(p3,p4, nrow = 1)
+p6 <- ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LA estimators") + xlab("x_101") + theme_grey(base_size = 8)
+grid.arrange(p5,p6, nrow = 1)
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -206,10 +210,10 @@ residuals = sample(e.observed.LS, size = B, replace = T)
 x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
 x.101.LA = as.vector(bootstrapped.LA%*%x) + residuals
 df.bs.LS = data.frame(x = x.101.LS)
-p3 <- ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LS estimators") + xlab("x_101") + theme_grey(base_size = 8)
+p5 <- ggplot(df.bs.LS, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LS estimators") + xlab("x_101") + theme_grey(base_size = 8)
 df.bs.LA = data.frame(x = x.101.LA)
-p4 <- ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LA estimators") + xlab("x_101") + theme_grey(base_size = 8)
-grid.arrange(p3,p4, nrow = 1, widths = c(2,2))
+p6 <- ggplot(df.bs.LA, aes(x = x)) + geom_histogram(aes(y = ..density..)) + ggtitle("Histogram of simulated distribution of \n x_101 based on LA estimators") + xlab("x_101") + theme_grey(base_size = 8)
+grid.arrange(p5,p6, nrow = 1)
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
@@ -226,7 +230,7 @@ bilirubin['log_meas'] = log(bilirubin$meas)
 ggplot(data = bilirubin, aes(x = pers, y = log_meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
              outlier.size=2, notch=FALSE) + theme_grey()
 ```
-We observe from \ref{boxplot} that the median (the middle bold line) for person 1 and person 2 are very close to eachother and far from the median for person 3. From the 1st and 3rd quartiles of the boxplots (indicated by the lower and upper hinges) we observe that there is little spread in the measurements for person 2, some spread for person 3 and a lot of spread for person 1. The whiskers denote the largest / smallest measurement that is whithin $1.5 * IQR$ (the range between the 1st and 3rd quantile) from the upper / lower hinge. This measures the total spread in the data. For person 1 and person 2 we see that the whiskers extend relatively far into the range of the boxplot of person 3. The medians indicate a large difference between the bilirubin levels of person 1 / 2 and person 3 but observing (from the whiskers) the large spread in the data we should also investigate this significance quantitatively.
+We observe from figure \ref{boxplot} that the median (the middle bold line) for person 1 and person 2 are very close to eachother and far from the median for person 3. From the 1st and 3rd quartiles of the boxplots (indicated by the lower and upper hinges) we observe that there is little spread in the measurements for person 2, some spread for person 3 and a lot of spread for person 1. The whiskers denote the largest / smallest measurement that is whithin $1.5 * IQR$ (the range between the 1st and 3rd quantile) from the upper / lower hinge. This measures the total spread in the data. For person 1 and person 2 we see that the whiskers extend relatively far into the range of the boxplot of person 3. The medians indicate a large difference between the bilirubin levels of person 1 / 2 and person 3 but observing (from the whiskers) the large spread in the data we should also investigate this significance quantitatively.
 
 We fit a linear model $$\log Y_{ij} \sim \beta_{p_j} + e_{ij}, \quad e_{ij} \overset{iid}{\sim} N(0, \sigma^2)$$
 
@@ -272,8 +276,6 @@ for (i in seq(0, fstatistic_length)) {
   fstatistic_values[i] = permTest()
 }
 
-# We now want df to be the Fisher-distribution
-rm(df)
 
 df_fstatistic_values = data.frame(x = fstatistic_values)
 fstatistic_quantiles = quantile(fstatistic_values, probs = c(0.95))
@@ -290,7 +292,7 @@ cat("p-value: ", (fstatistic_length - index)/fstatistic_length)
 
 Here we observe an estimate of the p-value to be `r (fstatistic_length - index)/fstatistic_length`, which corresponds well with the original p-value of `r 1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3])`. We could have foreseen that these p-values would be similar by observing, from figure \ref{fig:histogram}, that the distribution of $\{\hat{F}^{(i)}_{H_0}\}$ is very similar to the corresponding Fisher distribution. This gives us reason to believe that the assumptions of the F-test, i.e. that the regression errors are iid. normal, are satisfied and that F-test will yield a correct p-value. 
 
-Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating biliruben in his blood.
+Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating bilirubin in his blood.
 
 # Problem C: The EM-algorithm and bootstrapping
 
