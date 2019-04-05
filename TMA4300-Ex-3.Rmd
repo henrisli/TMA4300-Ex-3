@@ -448,7 +448,7 @@ To find analytical formulas for the maximum likelihood estimators of $\hat{\lamb
 
 $$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_0} = \frac{N_1}{\lambda_0} - \sum_{i=1}^n z_i + \underset{u_i=0}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_0}}{e^{z_i\lambda_0}-1},$$
 $$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_1} = \frac{N_0}{\lambda_1} - \sum_{i=1}^n z_i + \underset{u_i=1}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_1}}{e^{z_i\lambda_1}-1},$$
-
+with $N_0=\sum_{i=1}^nI(u_i=0)$ and $N_1=\sum_{i=1}^nI(u_i=1)$.
 
 <!---
 
