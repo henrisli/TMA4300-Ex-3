@@ -423,18 +423,34 @@ SKRIV NOE HER
 
 ## 4).
 
-As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$ as the maximum of the two exponentially distributed variables $x_i$ and $y_i$. 
+As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first find the density of $z_i$ as the maximum of the two exponentially distributed variables $x_i$ and $y_i$, 
 
 \begin{align*}
-P(z_i\leq z) = F_{Z_i}(z_i)&=\begin{cases}\int_0^z \int_0^y \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dxdy, &\text{ if }u_i=0\\\int_0^z \int_0^x \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dydx, &\text{ if }u_i=1\end{cases}\\
-&= \begin{cases}\frac{\lambda_1(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_1z}+1, &\text{ if }u_i=0\\\frac{\lambda_0(\exp\{-z(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_0z}+1, &\text{ if }u_i=1 \end{cases}
+P(z_i\leq z) = F_{Z_i}(z_i)&=\begin{cases}\int_0^{z_i} \int_0^y \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dxdy, &\text{ if }u_i=0,\\\int_0^{z_i} \int_0^x \lambda_0e^{-\lambda_0x_i}\lambda_1e^{-\lambda_1y_i}dydx, &\text{ if }u_i=1,\end{cases}\\
+&= \begin{cases}\frac{\lambda_1(\exp\{-z_i(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_1z_i}+1, &\text{ if }u_i=0,\\\frac{\lambda_0(\exp\{-z_i(\lambda_0+\lambda_1)\}-1)}{\lambda_0+\lambda_1}-e^{-\lambda_0z_i}+1, &\text{ if }u_i=1. \end{cases}
 \end{align*}
 
-\begin{align*}
-P(z_i \leq z) &= P(x_i \leq z_i) P(y_i \leq z_i) = (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i}) \\
-F_{Z_i}(z_i) &= (1 - e^{-\lambda_0 z_i}) (1 - e^{-\lambda_1 z_i})
-\end{align*}
-We derive to get the pdf of $z_i$,
+We then differentiate on $z_i$ to get the pdf of $z_i$ as,
+
+$$f_{Z_i}(z_i) = \frac{\partial F_{Z_i}(z_i)}{\partial z_i} =  \begin{cases}\lambda_1(e^{-\lambda_1z_i}-e^{-z_i(\lambda_0+\lambda_1)}), &\text{ if }u_i=0,\\\lambda_0(e^{-\lambda_0z_i}-e^{-z_i(\lambda_0+\lambda_1)}), &\text{ if }u_i=1. \end{cases}$$
+To get the loglikelihood of the full sample, we first take the log of $f_{Z_i}(z_i)$ to get
+$$\log(f_{Z_i}(z_i)) = \begin{cases}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1), &\text{ if }u_i=0,\\\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1), &\text{ if }u_i=1. \end{cases}$$
+We can then find the loglikelihood of the total sample as,
+\begin{equation}
+\begin{split}
+\log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big) = \log\Big(\prod_{i=1}^n f_{Z_i}(z_i)\Big) = \sum_{i=1}^n \log(f_{Z_i}(z_i))\\
+&= \underset{u_i=0}{\sum_{i=1}^n}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1)\\
+&+ \underset{u_i=1}{\sum_{i=1}^n}\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1).
+\end{split}
+\label{eq:ll}
+\end{equation}
+To find analytical formulas for the maximum likelihood estimators of $\hat{\lambda}_0$ and $\hat{\lambda}_1$, we differentiate the loglikelihood w.r.t. $\lambda_0$ and $\lambda_1$,
+
+$$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_0} = \frac{N_1}{\lambda_0} - \sum_{i=1}^n z_i + \underset{u_i=0}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_0}}{e^{z_i\lambda_0}-1},$$
+$$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_1} = \frac{N_0}{\lambda_1} - \sum_{i=1}^n z_i + \underset{u_i=1}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_1}}{e^{z_i\lambda_1}-1},$$
+
+
+<!---
 
 $$ f_{Z_i}(z_i) = F_{Z_i}'(z_i) =  \lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i} - (\lambda_0 + \lambda_1) e^{-(\lambda_0 + \lambda_1)z_i}.$$
 
@@ -478,9 +494,9 @@ and with respect to $\lambda_1$,
 \\
 &+ \sum_{u_i = 1} \frac{(\frac{1}{\lambda_1} - z_i)\lambda_0 e^{-\lambda_0 z_i}}{\lambda_0 e^{-\lambda_0 z_i} + \lambda_1 e^{-\lambda_1 z_i}}.
 \end{align*}
-
-and find the maximum-likelhood parameters $(\lambda_0, \lambda_1)$ by solving
-$$ \frac{\partial \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0}, \quad \text{and} \quad \frac{\partial \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = 0.$$
+--->
+Classically, we would want to find the maximum-likelhood parameters $(\lambda_0, \lambda_1)$ by solving
+$$ \frac{\partial \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_0}=0, \quad \text{and} \quad \frac{\partial \log f_{\mathbf{Z}, \mathbf{U}}(\mathbf{z}, \mathbf{u})}{\partial \lambda_1} = 0.$$
 
 However, we here choose to optimize the loglikelihood  given in equation \ref{eq:ll} using the derivative-free optimization technique implemented in R's `optim` function. This is an implementation of the Nelder-Mead algorithm.
 
