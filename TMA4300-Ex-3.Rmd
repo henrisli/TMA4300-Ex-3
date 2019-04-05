@@ -359,13 +359,13 @@ Giving
 which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this recursion to 
 
 ```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
-u = read.table("u.txt")[,1]
-z = read.table("z.txt")[,1]
+u = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/u.txt")[,1]
+z = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/z.txt")[,1]
 n = length(u)
 
-n.iterations = 30
+n.iterations = 50
 lambda = array(dim=c(n.iterations, 2))
-lambda[1,] = c(1, 6)
+lambda[1,] = c(1, 15)
 
 
 for(i in 2:n.iterations){
@@ -374,7 +374,6 @@ for(i in 2:n.iterations){
 }
 
 lambda_orig = lambda[n.iterations,]
-
 
 df = data.frame(n = 1:n.iterations, lambda)
 
@@ -531,6 +530,7 @@ Especially in $\lambda_1$ we see a difference. If we compare the log-likelihood 
 ```{r, echo=T, eval=T}
 cat("loglik EM:", loglik(lambda_orig), "\n")
 cat("loglik MLE:", loglik(lambda_optim), "\n")
+
 ```
 
 We see that there is very little difference in the log-likelihood. From the plot \ref{fig:llik_lamb} we see that in a neighbouring area of the MLE $(\hat{\lambda}_0, \hat{\lambda}_1)$ the slope of the log-likelihood is very weak. We suspect that, as a result, the convergence criteria of the EM-algorithm will be satisfied before it can converge to the MLE. 
