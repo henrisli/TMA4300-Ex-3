@@ -330,32 +330,30 @@ $$E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \l
 $$
 
 $$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
-\\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg),
+\\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp\{\lambda_0^{(t)} z_i\} - 1} \bigg),
 $$
 
 $$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}} dy_i 
-\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg),$$
+\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg),$$
 
 yielding,
 
 $$\begin{aligned} 
 Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)}) = E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
 &=  n (\ln \lambda_0 + \ln \lambda_1) \\ 
-&-\lambda_0 \sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg) \\
-&- \lambda_1 \sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg).
-\end{aligned}
-$$
+&-\lambda_0 \sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp\{\lambda_0^{(t)} z_i\} - 1} \bigg) \\
+&- \lambda_1 \sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg).
+\end{aligned}$$
 
 ## 2.
 
 This function $Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)})$ admits a maximum, which we can find using
 
-$$\frac{\partial }{\partial \lambda_0} Q= 0 \quad\quad \frac{\partial }{\partial \lambda_1}Q= 0
-$$
+$$\frac{\partial }{\partial \lambda_0} Q= 0 \quad\quad \frac{\partial }{\partial \lambda_1}Q= 0$$
 
 Giving 
 \begin{align*} \lambda_0 &= \frac{n}{\sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)},
-\\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp{\lambda_1^{(t)} z_i} - 1} \bigg)},
+\\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg)},
 \end{align*}
 
 which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this recursion to 
@@ -371,8 +369,8 @@ lambda[1,] = c(1, 15)
 
 
 for(i in 2:n.iterations){
-  lambda[i, 1] = n / sum(u*z + (1-u)*(1/lambda[i-1, 1] - z / (exp(lambda[i-1, 1]*z - 1))))
-  lambda[i, 2] = n / sum((1-u)*z + u*(1/lambda[i-1, 2] - z / (exp(lambda[i-1, 2]*z - 1))))
+  lambda[i, 1] = n / sum(u*z + (1-u)*(1/lambda[i-1, 1] - z / (exp(lambda[i-1, 1]*z) - 1)))
+  lambda[i, 2] = n / sum((1-u)*z + u*(1/lambda[i-1, 2] - z / (exp(lambda[i-1, 2]*z) - 1)))
 }
 
 lambda_orig = lambda[n.iterations,]
