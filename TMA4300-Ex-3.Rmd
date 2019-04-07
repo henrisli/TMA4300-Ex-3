@@ -172,8 +172,6 @@ cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[rou
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
 
-LEGGE TIL LINJER FOR 95% PRED INT?
-
 We observe that the histograms from the two different estimation methods look very similar. However, the limits of the $95\%$ prediction interval for the LA estimator are somewhat higher than the interval for the LS estimator. Still, this result could change if we set a different seed before sampling the residuals or before the bootstrap sampling.
 
 If we study the histograms, we also see that we get some really large simulated values for $x_{101}$. However, these large values do not appear frequent enough to appear in the $95\%$ prediction intervals. The reason why these large values appear becomes evident if we plot a histogram of the residual distribution. This is done for the distribution based on LS estimates in figure \ref{fig:resdist}, and the distribution based on LA estimates will be very similar.
@@ -244,7 +242,7 @@ summary_model0
 From the summary we can read that, as expected, the coefficient for `persp3` is large. We can also read that the hypothesis 
 
 $$ H_0: \beta_{p_1} = \beta_{p_2} = \beta_{p_3} \quad \text{vs} \quad  H_1: \beta_{p_1} \neq \beta_{p_2} \lor \beta_{p_1} \neq \beta_{p_3} \lor \beta_{p_2} \neq \beta_{p_3}$$
-attains the F-value `r round(as.numeric(fstatistic_model0), 4)` with a corresponding p-value of `r round(1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3]), 4)`, which is below any reasonable significance level. We note that this F-statistic is an estimator $\theta(x)$ and denote this original value of the estimator  $\hat{F}_0$. 
+attains the F-value `r round(as.numeric(fstatistic_model0), 4)` with a corresponding p-value of `r round(1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3]), 4)`, which is below any reasonable significance level. We note that this F-statistic is an estimator and denote this estimate $\hat{F}_0$. 
 
 Based on the p-value corresponding to $\hat{F}_0$ we may be tempted to already conclude that the total regression is signficant and thus that person 3 is accumulating bilirubin in his blood. However, we now wish to investigate the distribution of $\hat{F}$ under $H_0$.
 
@@ -283,14 +281,20 @@ ggplot() + geom_histogram(data = df_fstatistic_values, aes(x = x, y = ..density.
 ```
 
 
-We observe from figure \ref{fig:histogram} that under $H_0$ the majority of the estimates fall below that of the original value of $\hat{F}_0$, but we also observe some larger estimates. From the $95\%$ quantile, we note that $\hat{F}_0$ is larger than at least $95\%$ of the estimates $\{\hat{F}^{(i)}_{H_0}\}$. To be more exact we can estimate the p-value of $\hat{F}$ under $H_0$, i.e. the probability of observing a value equally or more extreme than $\hat{F}_0$ by counting the number of observations $\{\hat{F}^{(i)}_{H_0}\}$ that are larger then $\hat{F}_0$. 
+We observe from figure \ref{fig:histogram} that under $H_0$ the majority of the estimates fall below that of the original value of $\hat{F}_0$, but we also observe some larger estimates. From the $95\%$ quantile, we note that $\hat{F}_0$ is larger than at least $95\%$ of the estimates $\{\hat{F}^{(i)}_{H_0}\}$. To be more exact we can estimate the p-value of $\hat{F}$ under $H_0$, i.e. the probability of observing a value equally or more extreme than $\hat{F}_0$, by counting the number of observations $\{\hat{F}^{(i)}_{H_0}\}$ that are larger then $\hat{F}_0$. 
 
 ```{r}
+#Sort the observations and find index of closest value to F_0
 index = which.min(abs(sort(fstatistic_values) - fstatistic_model0))
 cat("p-value: ", (fstatistic_length - index)/fstatistic_length)
 ```
 
-Here we observe an estimate of the p-value to be `r (fstatistic_length - index)/fstatistic_length`, which corresponds well with the original p-value of `r 1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3])`. We could have foreseen that these p-values would be similar by observing, from figure \ref{fig:histogram}, that the distribution of $\{\hat{F}^{(i)}_{H_0}\}$ is very similar to the corresponding Fisher distribution. This gives us reason to believe that the assumptions of the F-test, i.e. that the regression errors are iid. normal, are satisfied and that F-test will yield a correct p-value. 
+Here we observe an estimate of the p-value to be `r (fstatistic_length - index)/fstatistic_length`, which corresponds well with the original p-value of `r 1 - pf(fstatistic_model0, summary_model0$fstatistic[2], summary_model0$fstatistic[3])`. We could have foreseen that these p-values would be similar by observing, from figure \ref{fig:histogram}, that the distribution of $\{\hat{F}^{(i)}_{H_0}\}$ is very similar to the corresponding Fisher distribution. This gives us reason to believe that the assumptions of the F-test, i.e. that the regression errors are iid. normal, are satisfied and that F-test will yield a correct p-value. We confirm this by computing the Anderson-Darling normality test,
+```{r, echo=T, eval=T}
+library(nortest)
+ad.test(model0$residuals)
+```
+and observe a p-value of `r ad.test(model0$residuals)$p.value`, indicating that the regression errors are, in fact, iid. normal.
 
 Regardless of our choice of p-value we can argue that the total regression is significant and reject $H_0$ on a $0.05$ significance level. This gives us reason to believe that person 3 is accumulating bilirubin in his blood.
 
@@ -323,15 +327,15 @@ $$f_{Y_i} (y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}) = \begin{cases
 \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}}, \quad &u_i = 1.
 \end{cases}$$
 
-The EM algorithm is based on maximizing the expectation of the loglikelihood of $\ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1)$ given $\mathbf{z}, \mathbf{u}$ and some initial guess of the intensities $\lambda_0^{t}$ and $\lambda_1^{t}$, 
+The EM algorithm is based on maximizing the expectation of $\ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1)$ under the assumption that $\mathbf{x}$ and $\mathbf{y}$ are distributed according to $\mathbf{z}, \mathbf{u}$ and some initial guess of the intensities $\lambda_0^{(t)}$ and $\lambda_1^{(t)}$, 
 
 $$\begin{aligned} E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] &= n (\ln \lambda_0 + \ln \lambda_1)  \\
 & -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ] \\
-& -\lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}],
+& -\lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}].
 \end{aligned}
 $$
 
-with respect to $(\lambda_0, \lambda_1)$. The expectations $E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ and $E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ can be computed as
+The expectations $E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ and $E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ can be computed as
 
 $$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
 \\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp\{\lambda_0^{(t)} z_i\} - 1} \bigg),
@@ -353,14 +357,13 @@ Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)}) = E_{\mathbf{x},
 
 This function $Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)})$ admits a maximum, which we can find using
 
-$$\frac{\partial }{\partial \lambda_0} Q= 0 \quad\quad \frac{\partial }{\partial \lambda_1}Q= 0$$
-
+$$\frac{\partial Q}{\partial \lambda_0} = 0 \quad\quad \frac{\partial Q}{\partial \lambda_1}= 0$$
 Giving 
 \begin{align*} \lambda_0 &= \frac{n}{\sum_{i=1}^n u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp{\lambda_0^{(t)} z_i} - 1} \bigg)},
-\\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg)},
+\\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg)}.
 \end{align*}
 
-which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this,
+We can then use this new solution as $(\lambda_0^{t+1}, \lambda_1^{t+1})$ and repeat the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$ until the norm of the update is below some lower value. We implement this,
 
 ```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
 u = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/u.txt")[,1]
@@ -444,7 +447,7 @@ rbind(bias = apply(lambda_bs,2,mean) - lambda_orig, stdev =  sqrt(diag(cov(lambd
 
 we see that there is non-negligible bias. We could consider using instead the bias-corrected EM estimator. However, we also see that the standard deviation of the estimates are about a magnitude larger than the bias. As the variance in this case is the main contributor to the error of the estimator we prefer the original EM estimate instead of the bias-corrected estimate. The bias-corrected estimator will give larger variance and thus less accurate estimates of the intensities $\lambda_0$ and $\lambda_1$. 
 
-We observe that the correlation between the bootstrap estimates of $lambda_0$ and $lambda_1$, 
+We observe that the correlation between the bootstrap estimates of $\lambda_0$ and $\lambda_1$, 
 
 ```{r, echo=T, eval=T}
 cat("Corr", cor(lambda_bs)[1, 2], " ")
