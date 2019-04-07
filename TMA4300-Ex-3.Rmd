@@ -387,7 +387,7 @@ df = data.frame(n = 1:n.iterations, lambda)
 ggplot() + geom_line(data = df, aes(x = n, y = X1, col="lambda_0")) + geom_line(data = df, aes(x = n, y = X2, col="lambda_1")) + ylab("") + ggtitle("Convergence plot for lambda_0 and lambda_1") + theme_grey()
 ```
 
-and see from \ref{fig:conv_lamb} that the algorithm converges to the values $\lambda_{0}^{(0)}, \lambda_{1}^{(0)}$ = `r lambda_orig` after only 2-4 iterations. 
+and see from figure \ref{fig:conv_lamb} that the algorithm converges to the values $\lambda_{0}^{(0)}, \lambda_{1}^{(0)}$ = `r lambda_orig` after only 2-4 iterations. 
 
 
 ```{r, eval=T, echo=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Convergence plot in the log of the norm of the update, $\\log \\big (\\lVert (\\lambda_0^{(t)}, \\lambda_1^{(t)}) - (\\lambda_0^{(t-1)}, \\lambda_1^{(t-1)}) \\rVert \\big )$. \\label{fig:conv_lamb2}"}
@@ -395,17 +395,17 @@ and see from \ref{fig:conv_lamb} that the algorithm converges to the values $\la
 df_update = data.frame(n = 2:n.iterations, update_norm = apply(diff(lambda), 1, norm, type="2"))
 ggplot() + geom_line(data = df_update, aes(x = n, y = log(update_norm), col="log(norm of update)")) + geom_line(data = data.frame(n = 2:30), aes(x = n, y = 2-n, color="reference, y = -x"), linetype=2) + ylab("log(norm(lambda[t] - lambda[t-1]))") + ggtitle("Convergence plot in norm for lambda") + theme_grey()
 ```
-From plot \ref{fig:conv_lamb2} we see that the convergence in norm of the update, $\lVert (\lambda_0^{(t)}, \lambda_1^{(t)}) - (\lambda_0^{(t-1)}, \lambda_1^{(t-1)}) \rVert$, is slightly faster than linear.
+From figure \ref{fig:conv_lamb2} we see that the convergence in norm of the update, $\lVert (\lambda_0^{(t)}, \lambda_1^{(t)}) - (\lambda_0^{(t-1)}, \lambda_1^{(t-1)}) \rVert$, is slightly faster than linear.
 
 ## 3).
 
-This EM-algorithm is an estimator of $(\lambda_0, \lambda_1)$. We now want to investigate the bias and variance of this estimator. To do this we implement a bootstrap algorithm. The algorithm is summarized in the following pseudocode. 
+This EM-algorithm gives an estimator of $(\lambda_0, \lambda_1)$. We now want to investigate the bias and variance of this estimator. To do this we implement a bootstrap algorithm. The algorithm is summarized in the following pseudocode. 
 
 for $b$ in $(1, 2, \dots, B)$ do
 \begin{enumerate}
-  \item $u_{b}^*$ = sample with replacement from $u$
-  \item $z_{b}^*$ = sample with replacement from $z$
-  \item $(\lambda_{0, b}^{*}, \lambda_{1, b}^{*})$ = run EM algorithm with $u_{b}^*$ and $z_{b}^*$
+  \item $u_{b}^* \leftarrow$ sample with replacement from $u$
+  \item $z_{b}^* \leftarrow$ sample with replacement from $z$
+  \item $(\lambda_{0, b}^{*}, \lambda_{1, b}^{*}) \leftarrow$ run EM algorithm with $u_{b}^*$ and $z_{b}^*$
   \item store $(\lambda_{0, b}^{*}, \lambda_{1, b}^{*})$ as a single bootstrap estimate.
 \end{enumerate}
 
@@ -486,16 +486,16 @@ $$p(Z_i = z, U_i = 0) = \lambda_1 e^{-\lambda_1 z_i}(1-e^{-\lambda_0 z_i})$$
 
 We combine this to formulate the joint density of $z_i, u_i$ given $\lambda_0, \lambda_1$,
 
-$$f_{Z_i, U_i}(z_i, u_i ; \lambda_0, \lambda_1) =\begin{cases}
+$$f_{Z_i, U_i}(z_i, u_i | \lambda_0, \lambda_1) =\begin{cases}
 \lambda_1 e^{-\lambda_1 z_i}(1-e^{-\lambda_0 z_i}), &\text{ if }u_i=0, \\
 \lambda_0 e^{-\lambda_0 z_i}(1-e^{-\lambda_1 z_i}), &\text{ if }u_i=1, \end{cases}
 $$
 
-which we use to compute the loglikelihood $\ell(\lambda_0, \lambda_1 ; \mathbf{z}, \mathbf{u})$
+which we use to compute the loglikelihood $\ell(\lambda_0, \lambda_1 | \mathbf{z}, \mathbf{u})$
 
 \begin{equation}
 \begin{split}
-\ell (\lambda_0, \lambda_1 ; \mathbf{z}, \mathbf{u}) = \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u} ; \lambda_0, \lambda_1)\big) &= \log\Big(\prod_{i=1}^n f_{Z_i, U_i}(z_i, u_i)\Big) = \sum_{i=1}^n \log \big(f_{Z_i, U_i}(z_i, u_i ; \lambda_0, \lambda_1) \big)\\
+\ell (\lambda_0, \lambda_1 | \mathbf{z}, \mathbf{u}) = \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u} | \lambda_0, \lambda_1)\big) &= \log\Big(\prod_{i=1}^n f_{Z_i, U_i}(z_i, u_i)\Big) = \sum_{i=1}^n \log \big(f_{Z_i, U_i}(z_i, u_i | \lambda_0, \lambda_1) \big)\\
 &= \underset{u_i=0}{\sum_{i=1}^n}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1)\\
 &+ \underset{u_i=1}{\sum_{i=1}^n}\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1).
 \end{split}
@@ -527,16 +527,14 @@ loglik = function(x){
   lambda_0 = x[1]
   lambda_1 = x[2]
   
-  res = sum(u*log(lambda_0 * (1 - exp(-lambda_1 * z)) * exp(-lambda_0 * z)))
-  res = res + sum((1-u)*log(lambda_1 * (1 - exp(-lambda_0 * z)) * exp(-lambda_1 * z)))
-
+  # Create indexes to sum over u_i=0 and u_i=1
+  index_0 = which(u==0)
+  index_1 = which(u==1)
+  
+  # Compute likelihood as in equation 1.
+  res = sum(log(lambda_1) - z[index_0]*(lambda_0 + lambda_1) + log(exp(lambda_0*z[index_0]) - 1))
+  res = res + sum(log(lambda_0) - z[index_1]*(lambda_0 + lambda_1) + log(exp(lambda_1*z[index_1]) - 1))
   return(res)
-}
-
-loglik2 = function(x){
-  lambda_0 = x[1]
-  lambda_1 = x[2]
-  return(sum(-z[which(u==0)]*(lambda_0+lambda_1)+log(exp(lambda_0*z[which(u==0)])-1)+log(lambda_1)) + sum(-z[which(u==1)]*(lambda_0+lambda_1)+log(exp(lambda_1*z[which(u==1)])-1)+log(lambda_0)))
 }
 
 # Find optimal lambda using derivative-free optimization with initial guess of (4, 12)
@@ -561,7 +559,7 @@ dfll_dot1 = data.frame(lambda_0 = lambda_orig[1], lambda_1 = lambda_orig[2])
 dfll_dot3 = data.frame(lambda_0 = mean(lambda_bs[, 1]), lambda_1 = mean(lambda_bs[, 2]))
 dfll_dot2 = data.frame(lambda_0 = lambda_optim[1], lambda_1 = lambda_optim[2])
 
-ggplot() + geom_contour(data = dfll, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=3.5, show.legend=T)  + geom_point(data = dfll_dot1, aes(x = lambda_0, y = lambda_1, shape="EM-estimate", col="EM-estimate"), size=4, alpha=0.7) + geom_point(data = dfll_dot2, aes(x = lambda_0, y = lambda_1, shape="optimized", col="optimized"), size=4, alpha=0.7) + geom_point(data = dfll_dot3, aes(x = lambda_0, y = lambda_1, shape="bootstrap mean", col="bootstrap mean"), size=4, alpha=0.7) + theme(legend.position = c(0.95, 0.95), legend.justification = c("right", "top"))
+ggplot() + geom_contour(data = dfll, aes(x = lambda_0, y = lambda_1, z = llik, col = "Loglikelihood"), binwidth=3.5, show.legend=T)  + geom_point(data = dfll_dot1, aes(x = lambda_0, y = lambda_1, shape="EM-estimate", col="EM-estimate"), size=4, alpha=0.7) + geom_point(data = dfll_dot2, aes(x = lambda_0, y = lambda_1, shape="Optimized", col="Optimized"), size=4, alpha=0.7) + geom_point(data = dfll_dot3, aes(x = lambda_0, y = lambda_1, shape="Bootstrap mean", col="Bootstrap mean"), size=4, alpha=0.7)
 ```
 
 We see from the contour plot of the loglikelihood in figure \ref{fig:llik_lamb} that the optimization scheme correctly finds the ML estimate $(\hat{\lambda}_0, \hat{\lambda}_1)$ of $(\lambda_0, \lambda_1)$. From the overlapping dots and from the corresponding printout below we see that the ML estimate and the original EM estimate are very similar, while the bootstrap mean is somewhat different.
