@@ -389,6 +389,14 @@ ggplot() + geom_line(data = df, aes(x = n, y = X1, col="lambda_0")) + geom_line(
 
 and see from \ref{fig:conv_lamb} that the algorithm converges to the values $\lambda_{0}^{(0)}, \lambda_{1}^{(0)}$ = `r lambda_orig` after only 2-4 iterations. 
 
+
+```{r, eval=T, echo=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Convergence plot in the log of the norm of the update, $\\log \\big (\\lVert (\\lambda_0^{(t)}, \\lambda_1^{(t)}) - (\\lambda_0^{(t-1)}, \\lambda_1^{(t-1)}) \\rVert \\big )$. \\label{fig:conv_lamb2}"}
+#Compute norm of update (lambda[t] - lambda[t-1])
+df_update = data.frame(n = 2:n.iterations, update_norm = apply(diff(lambda), 1, norm, type="2"))
+ggplot() + geom_line(data = df_update, aes(x = n, y = log(update_norm), col="log(norm of update)")) + geom_line(data = data.frame(n = 2:30), aes(x = n, y = 2-n, color="reference, y = -x"), linetype=2) + ylab("log(norm(lambda[t] - lambda[t-1]))") + ggtitle("Convergence plot in norm for lambda") + theme_grey()
+```
+From plot \ref{fig:conv_lamb2} we see that the convergence in norm of the update, $\lVert (\lambda_0^{(t)}, \lambda_1^{(t)}) - (\lambda_0^{(t-1)}, \lambda_1^{(t-1)}) \rVert$, is slightly faster than linear.
+
 ## 3).
 
 This EM-algorithm is an estimator of $(\lambda_0, \lambda_1)$. We now want to investigate the bias and variance of this estimator. To do this we implement a bootstrap algorithm. The algorithm is summarized in the following pseudocode. 
