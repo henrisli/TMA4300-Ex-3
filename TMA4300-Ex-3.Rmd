@@ -363,7 +363,7 @@ Giving
 \\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg)}.
 \end{align*}
 
-We can then use this new solution as $(\lambda_0^{t+1}, \lambda_1^{t+1})$ and repeat the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$ until the norm of the update is below some lower value. We implement this,
+We can then use this new solution as $(\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$ and repeat the recursion $(\lambda_0^{(t)}, \lambda_1^{(t)}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$ until the norm of the update is below some lower value. We implement this,
 
 ```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
 u = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/u.txt")[,1]
