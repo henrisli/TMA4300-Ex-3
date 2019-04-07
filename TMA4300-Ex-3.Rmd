@@ -178,7 +178,7 @@ We observe that the histograms from the two different estimation methods look ve
 
 If we study the histograms, we also see that we get some really large simulated values for $x_{101}$. However, these large values do not appear frequent enough to appear in the $95\%$ prediction intervals. The reason why these large values appear becomes evident if we plot a histogram of the residual distribution. This is done for the distribution based on LS estimates in figure \ref{fig:resdist}, and the distribution based on LA estimates will be very similar.
 
-```{r, echo = T, eval = T, out.width = "60%", fig.align = "center", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of $\\boldsymbol{\\beta}$ and original LS estimate of $\\boldsymbol{\\beta}$. \\label{fig:resdist}"}
+```{r, echo = T, eval = T, out.width = "60%", fig.align = "center", fig.pos="H", fig.cap="Histogram of residual distribution based on bootstrapped LS estimates of $\\boldsymbol{\\beta}$ and original LS estimate of $\\boldsymbol{\\beta}$. \\label{fig:resdist}"}
 df.e = data.frame(x= as.vector(e.bootstrapped.beta.LS))
 df.e.b = data.frame(x = e.observed.LS)
 p3 <- ggplot(df.e, aes(x = x)) + geom_histogram(aes(y = ..density..), bins = 100) + ggtitle("Histogram of residual distribution based \n on bootstrapped LS estimates of beta") + xlab("residual") + theme_grey(base_size = 8)
@@ -204,7 +204,7 @@ grid.arrange(p5,p6, nrow = 1)
 cat("Limits of 95% prediction interval for LS estimator: ", c(sort(x.101.LS)[round(B*0.025)], sort(x.101.LS)[round(B*0.975)]),"\n")
 cat("Limits of 95% prediction interval for LA estimator: ", c(sort(x.101.LA)[round(B*0.025)], sort(x.101.LA)[round(B*0.975)]))
 ```
-```{r, echo = F, eval = T, out.width='60%', fig.cap="\\label{fig:origest}Histogram of $x_{101}$ based on LS and LA estimates of $\\boldsymbol{\\beta}$ and residuals based on the original time-series.",fig.align = "center"}
+```{r, echo = F, eval = T, out.width='60%', fig.pos="H", fig.cap="\\label{fig:origest}Histogram of $x_{101}$ based on LS and LA estimates of $\\boldsymbol{\\beta}$ and residuals based on the original time-series.",fig.align = "center"}
 set.seed(4300)
 residuals = sample(e.observed.LS, size = B, replace = T)
 x.101.LS = as.vector(bootstrapped.LS%*%x) + residuals
@@ -224,7 +224,7 @@ We see that both the prediction interval values, and the histograms achieved fro
 ## 1)
 
 We wish to inspect the concentrations of bilirubin in the blood of three young men for possible evidence of health issues. We first inspect the logarithms of the measured concentrations for each individual.
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Box plot of the logarithm of the measured concentration (mg/dL) in blood samples taken from three young men. \\label{boxplot}"}
+```{r, echo=T, eval=T, out.width="50%", fig.pos="H", fig.align="center", fig.cap="Box plot of the logarithm of the measured concentration (mg/dL) in blood samples taken from three young men. \\label{boxplot}"}
 bilirubin <- read.table("bilirubin.txt",header=T)
 bilirubin['log_meas'] = log(bilirubin$meas)
 ggplot(data = bilirubin, aes(x = pers, y = log_meas)) + geom_boxplot(outlier.colour="black", outlier.shape=16,
@@ -269,7 +269,7 @@ permTest <- function() {
 ## 3)
 We may use these $999$ samples as an estimate of the distribution of $\hat{F}$ under $H_0$. 
 
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Histogram of the samples $\\{\\hat{F}^{(i)}_{H_0}\\}$. The lines indicate the $95\\%$ quantile, the value of the original estimate $\\hat{F}_0$ and the Fisher-distribution corresponding to the degrees of freedom in the regression. \\label{fig:histogram}"}
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Histogram of the samples $\\{\\hat{F}^{(i)}_{H_0}\\}$. The lines indicate the $95\\%$ quantile, the value of the original estimate $\\hat{F}_0$ and the Fisher-distribution corresponding to the degrees of freedom in the regression. \\label{fig:histogram}"}
 
 # Permute observations
 for (i in seq(0, fstatistic_length)) {
@@ -323,20 +323,24 @@ $$f_{Y_i} (y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}) = \begin{cases
 \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}}, \quad &u_i = 1.
 \end{cases}$$
 
-Then we use these to formulate the expectation
+The EM algorithm is based on maximizing the expectation of the loglikelihood of $\ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1)$ given $\mathbf{z}, \mathbf{u}$ and some initial guess of the intensities $\lambda_0^{t}$ and $\lambda_1^{t}$, 
 
-$$E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
-\\=  n (\ln \lambda_0 + \ln \lambda_1) -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ]   - \lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}],
+$$\begin{aligned} E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] &= n (\ln \lambda_0 + \ln \lambda_1)  \\
+& -\lambda_0 \sum_{i=1}^nE[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)} ] \\
+& -\lambda_1 \sum_{i=1}^n E[y_i, \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}],
+\end{aligned}
 $$
+
+with respect to $(\lambda_0, \lambda_1)$. The expectations $E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ and $E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}]$ can be computed as
 
 $$ E[x_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = u_i z_i + (1-u_i) \int_0^{z_i} x_i \frac{\lambda_0^{(t)} \exp \{ -\lambda_0^{(t)} x_i \}}{1 - \exp \{-\lambda_0^{(t)} z_i \}} dx_i 
 \\ = u_i z_i + (1 - u_i) \bigg (\frac{1}{\lambda_0^{(t)}} - \frac{z_i}{\exp\{\lambda_0^{(t)} z_i\} - 1} \bigg),
 $$
-
+and
 $$ E[y_i \lvert z_i, u_i, \lambda_0^{(t)}, \lambda_1^{(t)}] = (1-u_i) z_i + u_i \int_0^{z_i} y_i \frac{\lambda_1^{(t)} \exp \{ -\lambda_1^{(t)} y_i \}}{1 - \exp \{-\lambda_1^{(t)} z_i \}} dy_i 
-\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg),$$
+\\ = (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg).$$
 
-yielding,
+To maximize this expectation, we define the function $Q(\cdot)$, 
 
 $$\begin{aligned} 
 Q(\lambda_0, \lambda_1 \lvert \lambda_0^{(t)}, \lambda_1^{(t)}) = E_{\mathbf{x}, \mathbf{y}} [ \ln f(\mathbf{x}, \mathbf{y} \lvert \lambda_0, \lambda_1) \lvert \mathbf{z}, \mathbf{u}, \lambda_0^{(t)}, \lambda_1^{(t)}] 
@@ -356,9 +360,9 @@ Giving
 \\ \lambda_1 &= \frac{n}{\sum_{i=1}^n  (1-u_i) z_i + u_i \bigg (\frac{1}{\lambda_1^{(t)}} - \frac{z_i}{\exp\{\lambda_1^{(t)} z_i\} - 1} \bigg)},
 \end{align*}
 
-which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this recursion to 
+which gives us the recursion $(\lambda_0^{t}, \lambda_1^{t}) \mapsto (\lambda_0^{(t+1)}, \lambda_1^{(t+1)})$. We implement this,
 
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Convergence plot for $(\\lambda_0, \\lambda_1)$ for finding the maximum likelihood estimates using recursion. \\label{fig:conv_lamb}"}
 u = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/u.txt")[,1]
 z = read.table("https://www.math.ntnu.no/emner/TMA4300/2019v/exercise3/ex3-additionalFiles/z.txt")[,1]
 n = length(u)
@@ -380,26 +384,23 @@ df = data.frame(n = 1:n.iterations, lambda)
 ggplot() + geom_line(data = df, aes(x = n, y = X1, col="lambda_0")) + geom_line(data = df, aes(x = n, y = X2, col="lambda_1")) + ylab("") + ggtitle("Convergence plot for lambda_0 and lambda_1") + theme_grey()
 ```
 
-From \ref{fig:conv_lamb} we see that the algorithm converges to the values `r lambda_orig` after only 2-4 iterations. 
+and see from \ref{fig:conv_lamb} that the algorithm converges to the values $\lambda_{0}^{(0)}, \lambda_{1}^{(0)}$ = `r lambda_orig` after only 2-4 iterations. 
 
 ## 3).
 
-We now want to investigate the bias and standard deviations of this EM estimator of the MLE of $(\lambda_0, \lambda_1)$. To do this we implement a bootstrap algorithm. The algorithm is summarized in the following pseudocode. 
+This EM-algorithm is an estimator of $(\lambda_0, \lambda_1)$. We now want to investigate the bias and variance of this estimator. To do this we implement a bootstrap algorithm. The algorithm is summarized in the following pseudocode. 
 
-```{r, eval = FALSE}
-for b in (1, 2, ... bootstrap_samples) do
-
-  u bootstrap = sample with replacement(u)
-  z bootstrap = sample with replacement(z)
-   
-  lambda0, lambda1 = run EM algorithm with u bootstrap, z bootstrap
-  
-  store lambda0, lambda1 as a single bootstrap estimate of the MLE of lambda_0, lambda_1
-```
+for $b$ in $(1, 2, \dots, B)$ do
+\begin{enumerate}
+  \item $u_{b}^*$ = sample with replacement from $u$
+  \item $z_{b}^*$ = sample with replacement from $z$
+  \item $(\lambda_{0, b}^{*}, \lambda_{1, b}^{*})$ = run EM algorithm with $u_{b}^*$ and $z_{b}^*$
+  \item store $(\lambda_{0, b}^{*}, \lambda_{1, b}^{*})$ as a single bootstrap estimate.
+\end{enumerate}
 
 We implement this in the following code
 
-```{r, echo=T, eval=T, out.width="80%", fig.align="center", fig.cap="The distribution of the bootstrap samples of the EM-estimates of $(\\lambda_0, \\lambda_1)$. \\label{fig:bs_lamb}"}
+```{r, echo=T, eval=T, out.width="80%", fig.align="center", fig.pos="H", fig.cap="The distribution of the bootstrap samples of the EM-estimates of $(\\lambda_0, \\lambda_1)$. \\label{fig:bs_lamb}"}
 algorithmEM = function(u,z){
   lambda = 5*runif(2)
   lambda_old = c(-1, -1)
@@ -429,71 +430,40 @@ ggplot() + geom_histogram(data = df_bs, aes(x = x, y = ..density.., col="bootstr
 geom_vline(aes(xintercept = mean, col="bootstrap mean"), data = df_bs, lwd=1.0) + xlim(0,16) + facet_wrap(~idx) + theme_grey()
 ```
 
-From the lines in figure \ref{fig:bs_lamb} we see that the mean $(\bar{\lambda}_0^*, \bar{\lambda}_1^*)$ of the bootstrap samples correspond well with the original EM estimate. We observe the values
+From the lines in figure \ref{fig:bs_lamb} and the corresponding printout below we see that the mean $(\bar{\lambda}_0^*, \bar{\lambda}_1^*)$ of the bootstrap samples correspond well with the original EM estimate $\lambda_{0}^{(0)}, \lambda_{1}^{(0)}$.
 
 ```{r, echo=T, eval=T}
-cat("BS mean", apply(lambda_bs,2,mean), "\n")
-cat("origian EM", lambda_orig)
+rbind(lambda_orig, lambda_bs_mean = apply(lambda_bs,2,mean))
 ```
 
-which correspond to the biases
+However, from the width of the distribution of the bootstrap samples in figure \ref{fig:bs_lamb} we observe significant variance in the bootstrap samples, especially for $\lambda_1$. Comparing the bias estimate, $\widehat{\text{bias}} = (\bar{\lambda}_0^* -  \lambda_{0}^{(0)},  \bar{\lambda}_1^* - \lambda_{1}^{(0)})$, and standard deviations of the estimates
 
 ```{r, echo=T, eval=T}
-cat("Bias of the bootstrapped samples: \n")
-cat(apply(lambda_bs,2,mean) - lambda_orig, "\n")
+rbind(bias = apply(lambda_bs,2,mean) - lambda_orig, stdev =  sqrt(diag(cov(lambda_bs))))
 ```
 
-we see that the bootstrap estimate of the bias in our EM estimator non-negligible. We observe that the correlation between the bootstrap estimates of $lambda_0$ and $lambda_1$, 
+we see that there is non-negligible bias. We could consider using instead the bias-corrected EM estimator. However, we also see that the standard deviation of the estimates are about a magnitude larger than the bias. As the variance in this case is the main contributor to the error of the estimator we prefer the original EM estimate instead of the bias-corrected estimate. The bias-corrected estimator will give larger variance and thus less accurate estimates of the intensities $\lambda_0$ and $\lambda_1$. 
+
+We observe that the correlation between the bootstrap estimates of $lambda_0$ and $lambda_1$, 
 
 ```{r, echo=T, eval=T}
-cat("Corr(lambda_0, lambda_1):", cor(lambda_bs)[1, 2], " ")
+cat("Corr", cor(lambda_bs)[1, 2], " ")
 ```
 
-is weakly negative.
-
-From the width of the distribution of the bootstrap samples we see that there is significant variance in the bootstrap estimates, especially in $\lambda_1$. 
-
-```{r, echo=T, eval=T}
-cat("lambda_0, var:", cov(lambda_bs)[1, 1], " ")
-cat("stdev:", sqrt(cov(lambda_bs)[1, 1]), "\n")
-cat("lambda_1, var:", cov(lambda_bs)[2, 2], " ")
-cat("stdev:", sqrt(cov(lambda_bs)[2, 2]), "\n")
-```
-
-In fact the standard deviations are about a magnitude larger than the bias. As the variance in this case is the main contributor to the error of the estimator we prefer the original EM estimate instead of the bias-corrected estimate. The bias-corrected estimator will give larger variance and thus less accurate estimates of the intensities $\lambda_0$ and $\lambda_1$. 
+is very weak. This is as expected as our original variables $x_i$ and $y_i$ are sampled independently. 
 
 ## 4).
 
-
-
-To get the loglikelihood of the full sample, we first take the log of $f_{Z_i}(z_i)$ to get
-$$\log(f_{Z_i}(z_i)) = \begin{cases}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1), &\text{ if }u_i=0,\\\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1), &\text{ if }u_i=1. \end{cases}$$
-We can then find the loglikelihood of the total sample as,
-\begin{equation}
-\begin{split}
-\log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big) &= \log\Big(\prod_{i=1}^n f_{Z_i}(z_i)\Big) = \sum_{i=1}^n \log(f_{Z_i}(z_i))\\
-&= \underset{u_i=0}{\sum_{i=1}^n}\log(\lambda_1)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_0z_i}-1)\\
-&+ \underset{u_i=1}{\sum_{i=1}^n}\log(\lambda_0)-z_i(\lambda_0+\lambda_1)+\log(e^{\lambda_1z_i}-1).
-\end{split}
-\label{eq:ll}
-\end{equation}
-To find analytical formulas for the maximum likelihood estimators of $\hat{\lambda}_0$ and $\hat{\lambda}_1$, we differentiate the loglikelihood w.r.t. $\lambda_0$ and $\lambda_1$,
-
-$$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_0} = \frac{N_1}{\lambda_0} - \sum_{i=1}^n z_i + \underset{u_i=0}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_0}}{e^{z_i\lambda_0}-1},$$
-$$ \frac{\partial \log\big(f_{\mathbf{Z},\mathbf{U}}(\mathbf{z},\mathbf{u})\big)}{\partial \lambda_1} = \frac{N_0}{\lambda_1} - \sum_{i=1}^n z_i + \underset{u_i=1}{\sum_{i=1}^n}\frac{z_ie^{z_i\lambda_1}}{e^{z_i\lambda_1}-1},$$
-with $N_0=\sum_{i=1}^nI(u_i=0)$ and $N_1=\sum_{i=1}^nI(u_i=1)$.
-
-
-As an alternative to this EM approach we can find the MLE by classical optimization techniques. We first calculate the probablity that $Z_i \leq z$ and $u_i = 1$. We can find this by integrating the joint pdf of $(x_i, y_i)$
+As an alternative to this EM approach we can formulate the Maximum Likelhood Estimator (MLE) of $(\lambda_0, \lambda_1)$ and compute it using classical optimization techniques. We first calculate the probablity that $Z_i \leq z$ and $u_i = 1$. We can find this by integrating the joint pdf of $(x_i, y_i)$
 
 $$f_{X_i, Y_i}(x_i, y_i) = \lambda_0 e^{-\lambda_0 x_i} \lambda_1 e^{-\lambda_1 y_i}$$
 
 over the domain $x_i \in [0, z]$, $y_i \in [0, x_i]$. This becomes
 
-$$\begin{align*} p(Z_i \leq z, U_i = 1)  &= \int_0^{z} \int_0^{x_i} \lambda_0 e^{-\lambda_0 x_i} \lambda_1 e^{-\lambda_1 x_i} dy_i dx_i \\
+\begin{align*} p(Z_i \leq z, U_i = 1)  &= \int_0^{z} \int_0^{x_i} \lambda_0 e^{-\lambda_0 x_i} \lambda_1 e^{-\lambda_1 x_i} dy_i dx_i \\
  &= \int_0^z \lambda_0 e^{-\lambda_0 x_i} (1-e^{-\lambda_1 x_i})dx_i. \\
  \end{align*}
-$$
+
 
 Using the fundamental theorem of calculus we get the pdf of $(z_i, u_i)$,
 
@@ -537,9 +507,9 @@ is negative definite for all $(\lambda_0, \lambda_1)$. We can combine this with 
 
 $$ \frac{\partial \ell (\lambda_0, \lambda_1 ; \mathbf{z}, \mathbf{u})}{\partial \lambda_0}=0, \quad \text{and} \quad \frac{\partial \ell (\lambda_0, \lambda_1 ; \mathbf{z}, \mathbf{u})}{\partial \lambda_1} = 0.$$
 
-However, we here choose to optimize the loglikelihood given in equation \ref{eq:ll} using the derivative-free optimization technique implemented in R's `optim` function. This is an implementation of the Nelder-Mead algorithm.
+However, we here choose to optimize the loglikelihood using the derivative-free optimization technique implemented in R's `optim` function. This is an implementation of the Nelder-Mead algorithm.
 
-```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.cap="Contour-plot of the log-likelihood defined above as well as its optimum, the original EM-estimate of $(\\lambda_0, \\lambda_1)$ and the bootstrap mean of $(\\lambda_0, \\lambda_1)$. \\label{fig:llik_lamb}"}
+```{r, echo=T, eval=T, out.width="50%", fig.align="center", fig.pos="H", fig.cap="Contour-plot of the log-likelihood defined above as well as its optimum, the original EM-estimate $(\\lambda_0^{(0)}, \\lambda_1^{(0)})$ and the bootstrap mean $(\\bar{\\lambda}_0^*, \\bar{\\lambda}_1^*)$. \\label{fig:llik_lamb}"}
 
 #Loglikelihood as defined above
 loglik = function(x){
@@ -583,17 +553,14 @@ dfll_dot2 = data.frame(lambda_0 = lambda_optim[1], lambda_1 = lambda_optim[2])
 ggplot() + geom_contour(data = dfll, aes(x = lambda_0, y = lambda_1, z = llik), binwidth=3.5, show.legend=T)  + geom_point(data = dfll_dot1, aes(x = lambda_0, y = lambda_1, shape="EM-estimate", col="EM-estimate"), size=4, alpha=0.7) + geom_point(data = dfll_dot2, aes(x = lambda_0, y = lambda_1, shape="optimized", col="optimized"), size=4, alpha=0.7) + geom_point(data = dfll_dot3, aes(x = lambda_0, y = lambda_1, shape="bootstrap mean", col="bootstrap mean"), size=4, alpha=0.7) + theme(legend.position = c(0.95, 0.95), legend.justification = c("right", "top"))
 ```
 
-We see from figure \ref{fig:llik_lamb} that the optimization scheme correctly finds the MLE $(\hat{\lambda}_0, \hat{\lambda}_1)$ of $(\lambda_0, \lambda_1)$ and that it corresponds to the original EM-estimate of $(\\lambda_0, \\lambda_1)$.  and the bootstrap mean of $(\\lambda_0, \\lambda_1)$
+We see from the contour plot of the loglikelihood in figure \ref{fig:llik_lamb} that the optimization scheme correctly finds the ML estimate $(\hat{\lambda}_0, \hat{\lambda}_1)$ of $(\lambda_0, \lambda_1)$. From the overlapping dots and from the corresponding printout below we see that the ML estimate and the original EM estimate are very similar, while the bootstrap mean is somewhat different.
 
 ```{r, echo=T, eval=T}
-cat("EM:", lambda_orig, "\n")
-cat("MLE", lambda_optim)
+rbind(lambda_orig, lambda_optim, lambda_bs_mean = apply(FUN=mean, lambda_bs, MARGIN=2))
 ```
-
-We see that the estimates are identical. 
 
 In general, the linear convergence of EM can be slow compared to the convergence of classical optimization techniques. With the analytical likelihood, we can formulate the derivatives of the loglikelihood and rely on the well-developed theory of derivative-based optimization techniques. If we also formulate the hessian we can attain the quadratic convergence of the Newton's method. In practice we can then also use optimization frameworks such as R's `optim` function or Python's `scipy.linalg`.
 
-Additionally, it may be difficult to formulate fitting convergence criteria for the EM algorithm. Typically the algorithm is set to terminate when the norm of the change from one iteration to the next reaches some lower value. However, this lower value must be chosen in accordance with the slope of the loglikelihood around the MLE. As we saw in this case, it is difficult to do this without first also formulating the analytical loglikelihood. 
+Additionally, it may be difficult to formulate fitting convergence criteria for the EM algorithm. Typically the algorithm is set to terminate when the norm of the change from one iteration to the next reaches some lower value. If the convergence criteria of the EM algorithm is disconnected from the problem in question, it is possible that the algorithm will terminate before having reached the optimal solution. If the slope of the loglikelihood around the optimal solution is very steep, changes that are small in norm may cause large differences in the loglikelihood, and the lower value for the increment must be chosen accordingly. However, formulating good a priori estimates for the correct lower value is difficult. For MLE, the convergence criteria of derivative-based optimization algorithms are based on the norm of the gradient of the loglikelihood and therefore less prone to premature termination. 
 
 However, the ease of implementation and the stable ascent of EM are often very attractive despite its slow convergence.
